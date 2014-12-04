@@ -1,11 +1,14 @@
 // Enemies our player must avoid
-var Enemy = function() {
+var Enemy = function(speed) {
     // Variables applied to each of our instances go here,
     // we've provided one for you to get started
 
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
+    this.x = setEnemyLeftStart();
+    this.y = randomLane();
+    this.speed = speed;
 }
 
 // Update the enemy's position, required method for game
@@ -14,6 +17,13 @@ Enemy.prototype.update = function(dt) {
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
     // all computers.
+
+    if (this.x < 600) {
+        this.x += dt * this.speed;
+    } else {
+        this.y = randomLane();
+        this.x = setEnemyLeftStart();
+    }
 }
 
 // Draw the enemy on the screen, required method for game
@@ -25,12 +35,42 @@ Enemy.prototype.render = function() {
 // This class requires an update(), render() and
 // a handleInput() method.
 
+var Player = function() {
+
+}
+
+Player.prototype.update = function() {
+
+};
+
+Player.prototype.render = function() {
+
+};
+
+Player.prototype.handleInput = function() {
+
+};
+
+function randomLane() {
+    // The lanes start at y coordinate 60 and have an 85px spacing.
+    return (Math.floor((Math.random() * 3)) * 85) + 60;
+}
+
+function setEnemyLeftStart() {
+    // The x coordinate -171 places our bug just off the screen.
+    // We'll go an extra 100 pixels.
+    return -271;
+}
 
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
+var allEnemies = [];
+allEnemies.push(new Enemy(300));
+allEnemies.push(new Enemy(400));
+allEnemies.push(new Enemy(500));
 
-
+var player = new Player();
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
