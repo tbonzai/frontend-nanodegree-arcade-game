@@ -7,7 +7,7 @@ var Enemy = function(speed) {
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
     this.x = setEnemyLeftStart();
-    this.y = randomLane();
+    this.y = getRandomLane();
     this.speed = speed;
 }
 
@@ -21,7 +21,7 @@ Enemy.prototype.update = function(dt) {
     if (this.x < 600) {
         this.x += dt * this.speed;
     } else {
-        this.y = randomLane();
+        this.y = getRandomLane();
         this.x = setEnemyLeftStart();
     }
 }
@@ -36,7 +36,9 @@ Enemy.prototype.render = function() {
 // a handleInput() method.
 
 var Player = function() {
-
+    this.sprite = 'images/char-boy.png';
+    this.x = 200;
+    this.y = 315;
 }
 
 Player.prototype.update = function() {
@@ -44,14 +46,14 @@ Player.prototype.update = function() {
 };
 
 Player.prototype.render = function() {
-
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
 Player.prototype.handleInput = function() {
 
 };
 
-function randomLane() {
+function getRandomLane() {
     // The lanes start at y coordinate 60 and have an 85px spacing.
     return (Math.floor((Math.random() * 3)) * 85) + 60;
 }
