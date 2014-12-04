@@ -38,7 +38,7 @@ Enemy.prototype.render = function() {
 var Player = function() {
     this.sprite = 'images/char-boy.png';
     this.x = 200;
-    this.y = 315;
+    this.y = 320;
 }
 
 Player.prototype.update = function() {
@@ -49,13 +49,35 @@ Player.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
-Player.prototype.handleInput = function() {
+Player.prototype.handleInput = function(key) {
+    switch(key) {
+        case 'up':
+            if (this.y > -12) {
+                this.y -= 83;
+            }
+            break;
+        case 'down':
+            if (this.y < 403) {
+                this.y += 83;
+            }
+            break;
+        case 'right':
+            if (this.x < 400) {
+                this.x += 100;
+            }
+            break;
+        case 'left':
+            if (this.x > 0) {
+                this.x -= 100;
+            }
+            break;
+    }
 
 };
 
 function getRandomLane() {
     // The lanes start at y coordinate 60 and have an 85px spacing.
-    return (Math.floor((Math.random() * 3)) * 85) + 60;
+    return (Math.floor((Math.random() * 3)) * 83) + 60;
 }
 
 function setEnemyLeftStart() {
