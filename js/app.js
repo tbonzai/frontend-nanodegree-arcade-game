@@ -8,6 +8,8 @@ var Enemy = function(speed) {
     this.sprite = 'images/enemy-bug.png';
     this.x = setEnemyLeftStart();
     this.y = getRandomLane();
+    this.width = 171;
+    this.height = 101;
     this.speed = speed;
 }
 
@@ -38,7 +40,9 @@ Enemy.prototype.render = function() {
 var Player = function() {
     this.sprite = 'images/char-boy.png';
     this.x = 200;
-    this.y = 320;
+    this.y = 403;
+    this.width = 171;
+    this.height = 101;
 }
 
 Player.prototype.update = function() {
