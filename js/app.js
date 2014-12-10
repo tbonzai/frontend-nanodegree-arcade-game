@@ -1,6 +1,8 @@
 var Character = function() {
 	this.x = 0;
 	this.y = 0;
+	this.startX = 0;
+	this.startY = 0;
 	this.minX = 0;
 	this.maxX = 0;
 	this.minY = 0;
@@ -13,19 +15,19 @@ var Character = function() {
 	this.enemyMaxX = 0;
 };
 
-Character.prototype.left = function() {
+Character.prototype.leftEdge = function() {
 	return this.x + this.edgeOffsetLeft;
 };
 
-Character.prototype.right = function() {
+Character.prototype.rightEdge = function() {
 	return this.x + this.edgeOffsetRight;
 };
 
-Character.prototype.top = function() {
+Character.prototype.topEdge = function() {
 	return this.y + this.edgeOffsetTop;
 };
 
-Character.prototype.bottom = function() {
+Character.prototype.bottomEdge = function() {
 	return this.y + this.edgeOffsetBottom;
 };
 
@@ -39,9 +41,7 @@ var Enemy = function(character, speed) {
 	this.enemyStartX = playerImages[character].enemyStartX;
 	this.enemyMaxX = playerImages[character].enemyMaxX;
 	this.speed = speed;
-	console.log(this);
 	this.getRandomStart();
-	console.log(this);
 };
 
 Enemy.prototype = Object.create(Character.prototype);
@@ -173,8 +173,8 @@ var playerImages = {
 
 var Player = function(character) {
 	this.sprite = playerImages[character].sprite;
-	this.x = playerImages[character].startX;
-	this.y = playerImages[character].startY;
+	this.startX = playerImages[character].startX;
+	this.startY = playerImages[character].startY;
 	this.minX = playerImages[character].minX;
 	this.maxX = playerImages[character].maxX;
 	this.minY = playerImages[character].minY;
@@ -183,19 +183,33 @@ var Player = function(character) {
 	this.edgeOffsetBottom = playerImages[character].edgeOffsetBottom;
 	this.edgeOffsetLeft = playerImages[character].edgeOffsetLeft;
 	this.edgeOffsetRight = playerImages[character].edgeOffsetRight;
+	this.resetStart();
 };
 
 Player.prototype = Object.create(Character.prototype);
 
+Player.prototype.resetStart = function() {
+	this.x = this.startX;
+	this.y = this.startY;
+};
+
 Player.prototype.update = function() {
 	var
 		i
-		collision = false;
+		, collision = false;
+	// Iterate over the enemies and check for an overlap on the player.
 	for (i = 0; i < allEnemies.length; i++) {
-
+		if (this.leftEdge() < allEnemies[i].rightEdge()
+		    && this.rightEdge() > allEnemies[i].leftEdge()
+		    && this.topEdge() < allEnemies[i].bottomEdge()
+		    && this.bottomEdge() > allEnemies[i].topEdge()) {
+			this.resetStart();
+		}
 	}
 
 };
+
+
 
 Player.prototype.render = function() {
 	ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
@@ -224,7 +238,6 @@ Player.prototype.handleInput = function(key) {
 			}
 			break;
 	}
-	console.log(this.y);
 };
 
 // Now instantiate your objects.
