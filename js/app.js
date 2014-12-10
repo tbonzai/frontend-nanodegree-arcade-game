@@ -1,35 +1,47 @@
 var Character = function() {
 	this.x = 0;
 	this.y = 0;
-	this.left = 0;
-	this.right = 0;
-	this.top = 0;
-	this.bottom = 0;
+	this.minX = 0;
+	this.maxX = 0;
+	this.minY = 0;
+	this.maxY = 0;
+	this.edgeOffsetLeft = 0;
+	this.edgeOffsetRight = 0;
+	this.edgeOffsetTop = 0;
+	this.edgeOffsetBottom = 0;
+	this.enemyStartX = 0;
+	this.enemyMaxX = 0;
 };
 
-Character.prototype.getBounds = function() {
-	return {
-		left: this.x + this.edgeOffsetLeft
-		, right: this.x + this.edgeOffsetRight
-		, top: this.y + this.edgeOffsetTop
-		, bottom: this.y + this.edgeOffsetBottom
-	}
+Character.prototype.left = function() {
+	return this.x + this.edgeOffsetLeft;
+};
+
+Character.prototype.right = function() {
+	return this.x + this.edgeOffsetRight;
+};
+
+Character.prototype.top = function() {
+	return this.y + this.edgeOffsetTop;
+};
+
+Character.prototype.bottom = function() {
+	return this.y + this.edgeOffsetBottom;
 };
 
 // Enemies our player must avoid
-var Enemy = function(speed) {
-	// Variables applied to each of our instances go here,
-	// we've provided one for you to get started
-
-	// The image/sprite for our enemies, this uses
-	// a helper we've provided to easily load images
-	this.sprite = 'images/enemy-bug.png';
-	this.edgeOffsetTop = 27;
-	this.edgeOffsetBottom = 92;
-	this.edgeOffsetLeft = 1;
-	this.edgeOffsetRight = 99;
+var Enemy = function(character, speed) {
+	this.sprite = playerImages[character].sprite;
+	this.edgeOffsetTop = playerImages[character].edgeOffsetTop;
+	this.edgeOffsetBottom = playerImages[character].edgeOffsetBottom;
+	this.edgeOffsetLeft = playerImages[character].edgeOffsetLeft;
+	this.edgeOffsetRight = playerImages[character].edgeOffsetRight;
+	this.enemyStartX = playerImages[character].enemyStartX;
+	this.enemyMaxX = playerImages[character].enemyMaxX;
 	this.speed = speed;
+	console.log(this);
 	this.getRandomStart();
+	console.log(this);
 };
 
 Enemy.prototype = Object.create(Character.prototype);
@@ -41,7 +53,7 @@ Enemy.prototype.update = function(dt) {
 	// which will ensure the game runs at the same speed for
 	// all computers.
 
-	if (this.x < 600) {
+	if (this.x < this.enemyMaxX) {
 		this.x += dt * this.speed;
 	} else {
 		this.getRandomStart();
@@ -54,9 +66,10 @@ Enemy.prototype.render = function() {
 };
 
 Enemy.prototype.getRandomStart = function() {
-	// The lanes start at y coordinate 60 and have an 85px spacing.
-	this.y = (Math.floor((Math.random() * 3)) * 83) + 62;
-	this.x = -271;
+	// The lanes start at y coordinate 62 and have an 83px spacing.
+//	this.y = (Math.floor((Math.random() * 3)) * 83) + 62;
+	this.y = (Math.floor((Math.random() * 3)) * 83) + (this.edgeOffsetBottom - this.edgeOffsetTop - 3);
+	this.x = this.enemyStartX;
 };
 
 
@@ -66,6 +79,21 @@ Enemy.prototype.getRandomStart = function() {
 // a handleInput() method.
 
 var playerImages = {
+	'bug': {
+		sprite: 'images/enemy-bug.png'
+		, startX: 200
+		, startY: 405
+		, minX: 0
+		, maxX: 400
+		, minY: 0
+		, maxY: 400
+		, edgeOffsetTop: 27
+		, edgeOffsetBottom: 92
+		, edgeOffsetLeft: 1
+		, edgeOffsetRight: 99
+		, enemyStartX: -271
+		, enemyMaxX: 600
+	},
 	'boy': {
 		sprite: 'images/char-boy.png'
 		, startX: 200
@@ -78,6 +106,8 @@ var playerImages = {
 		, edgeOffsetBottom: 88
 		, edgeOffsetLeft: 16
 		, edgeOffsetRight: 83
+		, enemyStartX: -271
+		, enemyMaxX: 600
 	},
 	'cat-girl': {
 		sprite: 'images/char-cat-girl.png'
@@ -91,6 +121,8 @@ var playerImages = {
 		, edgeOffsetBottom: 88
 		, edgeOffsetLeft: 16
 		, edgeOffsetRight: 83
+		, enemyStartX: -271
+		, enemyMaxX: 600
 	},
 	'horn-girl': {
 		sprite: 'images/char-horn-girl.png'
@@ -104,6 +136,8 @@ var playerImages = {
 		, edgeOffsetBottom: 88
 		, edgeOffsetLeft: 6
 		, edgeOffsetRight: 83
+		, enemyStartX: -271
+		, enemyMaxX: 600
 	},
 	'pink-girl': {
 		sprite: 'images/char-pink-girl.png'
@@ -117,6 +151,8 @@ var playerImages = {
 		, edgeOffsetBottom: 88
 		, edgeOffsetLeft: 12
 		, edgeOffsetRight: 88
+		, enemyStartX: -271
+		, enemyMaxX: 600
 	},
 	'princess-girl': {
 		sprite: 'images/char-princess-girl.png'
@@ -130,6 +166,8 @@ var playerImages = {
 		, edgeOffsetBottom: 88
 		, edgeOffsetLeft: 13
 		, edgeOffsetRight: 87
+		, enemyStartX: -271
+		, enemyMaxX: 600
 	}
 };
 
@@ -193,9 +231,9 @@ Player.prototype.handleInput = function(key) {
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
 var allEnemies = [
-	new Enemy(300)
-	, new Enemy(400)
-	, new Enemy(500)
+	new Enemy('boy', 300)
+	, new Enemy('bug', 400)
+	, new Enemy('bug', 500)
 ];
 
 var player = new Player('pink-girl');
