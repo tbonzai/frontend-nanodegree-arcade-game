@@ -11,8 +11,8 @@ var Character = function() {
 	this.edgeOffsetRight = 0;
 	this.edgeOffsetTop = 0;
 	this.edgeOffsetBottom = 0;
-	this.enemyStartX = 0;
-	this.enemyMaxX = 0;
+	this.offScreenLeft = 0;
+	this.offScreenRight = 0;
 };
 
 Character.prototype.leftEdge = function() {
@@ -38,9 +38,11 @@ var Enemy = function(character, speed) {
 	this.edgeOffsetBottom = playerImages[character].edgeOffsetBottom;
 	this.edgeOffsetLeft = playerImages[character].edgeOffsetLeft;
 	this.edgeOffsetRight = playerImages[character].edgeOffsetRight;
-	this.enemyStartX = playerImages[character].enemyStartX;
-	this.enemyMaxX = playerImages[character].enemyMaxX;
+	this.offScreenLeft = playerImages[character].offScreenLeft;
+	this.offScreenRight = playerImages[character].offScreenRight;
 	this.speed = speed;
+	this.currentSpeed = speed;
+	this.flyOffSpeed = 0;
 	this.getRandomStart();
 };
 
@@ -52,9 +54,9 @@ Enemy.prototype.update = function(dt) {
 	// You should multiply any movement by the dt parameter
 	// which will ensure the game runs at the same speed for
 	// all computers.
-
-	if (this.x < this.enemyMaxX) {
-		this.x += dt * this.speed;
+	// Check the x coordinate to see if they are on the screen.
+	if (this.x < this.offScreenRight) {
+		this.x += dt * this.currentSpeed;
 	} else {
 		this.getRandomStart();
 	}
@@ -67,9 +69,8 @@ Enemy.prototype.render = function() {
 
 Enemy.prototype.getRandomStart = function() {
 	// The lanes start at y coordinate 62 and have an 83px spacing.
-//	this.y = (Math.floor((Math.random() * 3)) * 83) + 62;
 	this.y = (Math.floor((Math.random() * 3)) * 83) + (this.edgeOffsetBottom - this.edgeOffsetTop - 3);
-	this.x = this.enemyStartX;
+	this.x = this.offScreenLeft;
 };
 
 
@@ -91,8 +92,8 @@ var playerImages = {
 		, edgeOffsetBottom: 92
 		, edgeOffsetLeft: 1
 		, edgeOffsetRight: 99
-		, enemyStartX: -271
-		, enemyMaxX: 600
+		, offScreenLeft: -271
+		, offScreenRight: 600
 	},
 	'boy': {
 		sprite: 'images/char-boy.png'
@@ -106,8 +107,8 @@ var playerImages = {
 		, edgeOffsetBottom: 88
 		, edgeOffsetLeft: 16
 		, edgeOffsetRight: 83
-		, enemyStartX: -271
-		, enemyMaxX: 600
+		, offScreenLeft: -271
+		, offScreenRight: 600
 	},
 	'cat-girl': {
 		sprite: 'images/char-cat-girl.png'
@@ -121,8 +122,8 @@ var playerImages = {
 		, edgeOffsetBottom: 88
 		, edgeOffsetLeft: 16
 		, edgeOffsetRight: 83
-		, enemyStartX: -271
-		, enemyMaxX: 600
+		, offScreenLeft: -271
+		, offScreenRight: 600
 	},
 	'horn-girl': {
 		sprite: 'images/char-horn-girl.png'
@@ -136,8 +137,8 @@ var playerImages = {
 		, edgeOffsetBottom: 88
 		, edgeOffsetLeft: 6
 		, edgeOffsetRight: 83
-		, enemyStartX: -271
-		, enemyMaxX: 600
+		, offScreenLeft: -271
+		, offScreenRight: 600
 	},
 	'pink-girl': {
 		sprite: 'images/char-pink-girl.png'
@@ -151,8 +152,8 @@ var playerImages = {
 		, edgeOffsetBottom: 88
 		, edgeOffsetLeft: 12
 		, edgeOffsetRight: 88
-		, enemyStartX: -271
-		, enemyMaxX: 600
+		, offScreenLeft: -271
+		, offScreenRight: 600
 	},
 	'princess-girl': {
 		sprite: 'images/char-princess-girl.png'
@@ -166,8 +167,8 @@ var playerImages = {
 		, edgeOffsetBottom: 88
 		, edgeOffsetLeft: 13
 		, edgeOffsetRight: 87
-		, enemyStartX: -271
-		, enemyMaxX: 600
+		, offScreenLeft: -271
+		, offScreenRight: 600
 	}
 };
 
@@ -183,27 +184,53 @@ var Player = function(character) {
 	this.edgeOffsetBottom = playerImages[character].edgeOffsetBottom;
 	this.edgeOffsetLeft = playerImages[character].edgeOffsetLeft;
 	this.edgeOffsetRight = playerImages[character].edgeOffsetRight;
+	this.offScreenLeft = playerImages[character].offScreenLeft;
+	this.offScreenRight = playerImages[character].offScreenRight;
+	this.flyOffSpeed = 0;
 	this.resetStart();
 };
 
 Player.prototype = Object.create(Character.prototype);
+
+Player.prototype.flyOffScreen = function(dt, speed) {
+	while (this.x < this.offScreenRight) {
+		this.x += dt * speed;
+	}
+};
 
 Player.prototype.resetStart = function() {
 	this.x = this.startX;
 	this.y = this.startY;
 };
 
-Player.prototype.update = function() {
-	var
-		i
-		, collision = false;
-	// Iterate over the enemies and check for an overlap on the player.
-	for (i = 0; i < allEnemies.length; i++) {
-		if (this.leftEdge() < allEnemies[i].rightEdge()
-		    && this.rightEdge() > allEnemies[i].leftEdge()
-		    && this.topEdge() < allEnemies[i].bottomEdge()
-		    && this.bottomEdge() > allEnemies[i].topEdge()) {
+Player.prototype.update = function(dt) {
+	var i;
+
+	if (this.flyOffSpeed > 0) {
+		if (this.x < this.offScreenRight) {
+			// Make hte player fly off screen to the upper right.
+			this.x += dt * this.flyOffSpeed;
+			this.y --;
+		} else {
+			this.flyOffSpeed = 0;
+			// Reset all enemies.
+			for (i = 0; i < allEnemies.length; i++) {
+				allEnemies[i].currentSpeed = allEnemies[i].speed;
+				allEnemies[i].getRandomStart();
+			}
 			this.resetStart();
+		}
+	} else {
+		// Iterate over the enemies and check for an image overlap on the player.
+		for (i = 0; i < allEnemies.length; i++) {
+			if (this.leftEdge() < allEnemies[i].rightEdge()
+			    && this.rightEdge() > allEnemies[i].leftEdge()
+			    && this.topEdge() < allEnemies[i].bottomEdge()
+			    && this.bottomEdge() > allEnemies[i].topEdge()) {
+				// We have a collision. Transfer the motion from the enemy to the player.
+				this.flyOffSpeed = allEnemies[i].currentSpeed;
+				allEnemies[i].currentSpeed = 0;
+			}
 		}
 	}
 
@@ -218,22 +245,22 @@ Player.prototype.render = function() {
 Player.prototype.handleInput = function(key) {
 	switch(key) {
 		case 'up':
-			if (this.y > this.minY) {
+			if (this.y > this.minY && this.flyOffSpeed === 0) {
 				this.y -= 83;
 			}
 			break;
 		case 'down':
-			if (this.y < this.maxY) {
+			if (this.y < this.maxY && this.flyOffSpeed === 0) {
 				this.y += 83;
 			}
 			break;
 		case 'left':
-			if (this.x > this.minX) {
+			if (this.x > this.minX && this.flyOffSpeed === 0) {
 				this.x -= 101;
 			}
 			break;
 		case 'right':
-			if (this.x < this.maxX) {
+			if (this.x < this.maxX && this.flyOffSpeed === 0) {
 				this.x += 101;
 			}
 			break;
