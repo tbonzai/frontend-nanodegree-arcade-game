@@ -3,23 +3,6 @@
   * with varying attributes to be swapped out for one another.
 */
 var appImages = {
-	'bug': {
-		sprite: 'images/enemy-bug.png'
-		, startX: 200
-		, startY: 405
-		, minX: 0
-		, maxX: 400
-		, minY: 0
-		, maxY: 400
-		, characterOffsetTop: 27
-		, characterOffsetBottom: 92
-		, characterOffsetLeft: 1
-		, characterOffsetRight: 99
-		, offScreenLeft: -271
-		, offScreenRight: 600
-		, imageHeight: 171
-		, imageWidth: 101
-	},
 	'boy': {
 		sprite: 'images/char-boy.png'
 		, startX: 200
@@ -107,6 +90,73 @@ var appImages = {
 	}
 };
 
+var StartScreen = function() {
+	this.currentImage = 0;
+	this.theta = 0;
+	this.show = true;
+	this.imageArray = [];
+};
+
+StartScreen.prototype.render = function() {
+	var
+		i
+		, angle = 0
+		, x = 250
+		, y = 100
+		, img;
+
+	// Clear the canvas.
+	ctx.clearRect(0, 0, 505, 606);
+
+	// The first time we execute this code, set some object instance variables.
+	if (this.imageArray.length === 0) {
+		for (i in appImages) {
+			this.imageArray.push(i);
+		}
+		this.theta = Math.PI * 2 / this.imageArray.length;
+	}
+
+	// Set the angle for the first image.
+	angle -= this.theta + ((this.currentImage % this.imageArray.length) * this.theta) + (Math.PI / 2);
+
+	// Iterate over the images and place them in a circular arc.
+	for (i in appImages) {
+		img = appImages[i];
+		angle += this.theta;
+		x = 250 + (150 * Math.cos(angle));
+		y = 250 + (150 * Math.sin(angle));
+		ctx.drawImage(
+			Resources.get(img.sprite)
+			, x - ((img.characterOffsetRight - img.characterOffsetLeft) / 2)
+			, y - ((img.characterOffsetBottom - img.characterOffsetTop) / 2)
+		);
+	}
+}
+
+StartScreen.prototype.handleInput = function(key) {
+	switch(key) {
+		case 'enter':
+			player.setPlayer(this.imageArray[this.currentImage]);
+			this.show = false;
+			break;
+		case 'left':
+			if (this.currentImage > 0) {
+				this.currentImage--;
+			} else {
+				this.currentImage = this.imageArray.length - 1;
+			}
+			break;
+		case 'right':
+			if (this.currentImage < this.imageArray.length - 1) {
+				this.currentImage++;
+			} else {
+				this.currentImage = 0;
+			}
+			break;
+	}
+};
+
+
 /**
   * This is a super class from which all game characters will inherit methods and properties.
 */
@@ -147,13 +197,13 @@ Character.prototype.getCharacterBottomEdge = function() {
 
 // Enemies our player must avoid
 var Enemy = function(character, speed) {
-	this.sprite = appImages[character].sprite;
-	this.characterOffsetTop = appImages[character].characterOffsetTop;
-	this.characterOffsetBottom = appImages[character].characterOffsetBottom;
-	this.characterOffsetLeft = appImages[character].characterOffsetLeft;
-	this.characterOffsetRight = appImages[character].characterOffsetRight;
-	this.offScreenLeft = appImages[character].offScreenLeft;
-	this.offScreenRight = appImages[character].offScreenRight;
+	this.sprite = 'images/enemy-bug.png';
+	this.characterOffsetTop = 27;
+	this.characterOffsetBottom = 92;
+	this.characterOffsetLeft = 1;
+	this.characterOffsetRight = 99;
+	this.offScreenLeft = -271;
+	this.offScreenRight = 600;
 	this.speed = speed;
 	this.stopped = false;
 	this.getRandomStart();
@@ -194,7 +244,14 @@ Enemy.prototype.getRandomStart = function() {
 // This class requires an update(), render() and
 // a handleInput() method.
 
-var Player = function(character) {
+var Player = function() {
+	this.flyOffSpeed = 0;
+	this.drawAngle = 0;
+};
+
+Player.prototype = Object.create(Character.prototype);
+
+Player.prototype.setPlayer = function(character){
 	this.sprite = appImages[character].sprite;
 	this.startX = appImages[character].startX;
 	this.startY = appImages[character].startY;
@@ -210,12 +267,8 @@ var Player = function(character) {
 	this.offScreenRight = appImages[character].offScreenRight;
 	this.imageHeight = appImages[character].imageHeight;
 	this.imageWidth = appImages[character].imageWidth;
-	this.flyOffSpeed = 0;
-	this.drawAngle = 0;
 	this.resetStart();
-};
-
-Player.prototype = Object.create(Character.prototype);
+}
 
 Player.prototype.resetStart = function() {
 	this.x = this.startX;
@@ -311,7 +364,9 @@ var allEnemies = [
 	, new Enemy('bug', 500)
 ];
 
-var player = new Player('boy');
+var player = new Player();
+
+var startScreen = new StartScreen();
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
@@ -320,8 +375,12 @@ document.addEventListener('keyup', function(e) {
 		37: 'left',
 		38: 'up',
 		39: 'right',
-		40: 'down'
+		40: 'down',
+		13: 'enter'
 	};
-
-	player.handleInput(allowedKeys[e.keyCode]);
+	if (startScreen.show) {
+		startScreen.handleInput(allowedKeys[e.keyCode]);
+	} else {
+		player.handleInput(allowedKeys[e.keyCode]);
+	}
 });
