@@ -14,7 +14,7 @@ var appCharacters = {
 		, characterOffsetTop: 13
 		, characterOffsetBottom: 88
 		, characterOffsetLeft: 16
-		, characterOffsetRight: 83
+		, characterOffsetRight: 88
 		, offScreenLeft: -271
 		, offScreenRight: 600
 		, imageHeight: 171
@@ -47,7 +47,7 @@ var appCharacters = {
 		, maxY: 400
 		, characterOffsetTop: 11
 		, characterOffsetBottom: 88
-		, characterOffsetLeft: 6
+		, characterOffsetLeft: 16
 		, characterOffsetRight: 83
 		, offScreenLeft: -271
 		, offScreenRight: 600
@@ -64,7 +64,7 @@ var appCharacters = {
 		, maxY: 400
 		, characterOffsetTop: 12
 		, characterOffsetBottom: 88
-		, characterOffsetLeft: 12
+		, characterOffsetLeft: 16
 		, characterOffsetRight: 88
 		, offScreenLeft: -271
 		, offScreenRight: 600
@@ -81,7 +81,7 @@ var appCharacters = {
 		, maxY: 400
 		, characterOffsetTop: 2
 		, characterOffsetBottom: 88
-		, characterOffsetLeft: 13
+		, characterOffsetLeft: 16
 		, characterOffsetRight: 87
 		, offScreenLeft: -271
 		, offScreenRight: 600
@@ -162,7 +162,7 @@ StartScreen.prototype.render = function(dt) {
 	// Clear the canvas.
 	ctx.clearRect(0, 0, 505, 606);
 
-	// Draw the selector.
+	// Draw the selector image.
 	ctx.drawImage(
 		Resources.get('images/Selector.png')
 		, 215
@@ -182,27 +182,6 @@ StartScreen.prototype.render = function(dt) {
 			, 250 + (150 * Math.sin(char.radians)) - ((char.characterOffsetBottom - char.characterOffsetTop) / 2)
 		);
 	}
-
-/*
-	// Clear the canvas.
-	ctx.clearRect(0, 0, 505, 606);
-
-	// Set the radians for the first image.
-	radians -= this.characterSpacingRadians + ((this.currentImage % this.imageArray.length) * this.characterSpacingRadians) + (Math.PI / 2);
-
-	// Iterate over the images and place them in a circular arc.
-	for (i in appCharacters) {
-		char = appCharacters[i];
-		radians += this.characterSpacingRadians;
-		x = 250 + (150 * Math.cos(radians));
-		y = 250 + (150 * Math.sin(radians));
-		ctx.drawImage(
-			Resources.get(char.sprite)
-			, x - ((char.characterOffsetRight - char.characterOffsetLeft) / 2)
-			, y - ((char.characterOffsetBottom - char.characterOffsetTop) / 2)
-		);
-	}
-*/
 }
 
 StartScreen.prototype.handleInput = function(key) {
@@ -435,9 +414,9 @@ Player.prototype.handleInput = function(key) {
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
 var allEnemies = [
-	new Enemy('bug', 300)
-	, new Enemy('bug', 400)
+	new Enemy('bug', 400)
 	, new Enemy('bug', 500)
+	, new Enemy('bug', 600)
 ];
 
 var player = new Player();
