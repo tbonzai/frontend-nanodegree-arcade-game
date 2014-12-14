@@ -2,7 +2,7 @@
   * This object contains details about the images in the game. It allows images
   * with varying attributes to be swapped out for one another.
 */
-var appImages = {
+var appCharacters = {
 	'boy': {
 		sprite: 'images/char-boy.png'
 		, startX: 200
@@ -91,67 +91,143 @@ var appImages = {
 };
 
 var StartScreen = function() {
-	this.currentImage = 0;
-	this.theta = 0;
+	this.characterArray = [];
+	this.characterCurrent = 0;
+	this.characterSpacingRadians = 0;
+	this.queueRadians = 0;
+	this.characterSpacingRadians = 0;
 	this.show = true;
-	this.imageArray = [];
+
 };
 
-StartScreen.prototype.render = function() {
+StartScreen.prototype.render = function(dt) {
 	var
 		i
-		, angle = 0
-		, x = 250
-		, y = 100
-		, img;
+		, radians
+		, currX
+		, currY
+		, char
+		, radianIncrement;
+
+	// The first time we execute this code, set some object instance variables.
+	if (this.characterArray.length === 0) {
+		// Count the characters.
+		var characterCount = 0;
+		for (i in appCharacters) {
+			characterCount++;
+		}
+		// Calculate the character spacing in radians.
+		this.characterSpacingRadians = Math.PI * 2 / characterCount;
+		// Set the initial character's radians to 270 degrees (straight up) from the 0 axis.
+		radians = Math.PI * 1.5;
+		// Iterate over the characters.
+		for (i in appCharacters) {
+			// Grab the character.
+			char = appCharacters[i];
+			// Calculate the x,y coordinates based on the radians
+			currX = 250 + (150 * Math.cos(radians));
+			currY = 250 + (150 * Math.sin(radians));
+			// Add the character data to our array.
+			this.characterArray.push({
+				name: i
+				, sprite: char.sprite
+				, radians: radians
+				, characterOffsetRight: char.characterOffsetRight
+				, characterOffsetLeft: char.characterOffsetLeft
+				, characterOffsetBottom: char.characterOffsetBottom
+				, characterOffsetTop: char.characterOffsetTop
+			});
+			// Determine the next character's radians.
+			radians += this.characterSpacingRadians;
+		}
+	}
+
+	// Determine if there are any radians in the queue
+	if (this.queueRadians > this.characterSpacingRadians * dt * 2) {
+		radianIncrement = this.characterSpacingRadians * dt * 2;
+		this.queueRadians -= this.characterSpacingRadians * dt * 2;
+	} else if (this.queueRadians > 0) {
+		radianIncrement = this.queueRadians;
+		this.queueRadians = 0;
+	} else if (this.queueRadians < (this.characterSpacingRadians * dt * -2)) {
+		radianIncrement = this.characterSpacingRadians * dt * -2;
+		this.queueRadians += this.characterSpacingRadians * dt * 2;
+	} else if (this.queueRadians < 0) {
+		radianIncrement = this.queueRadians;
+		this.queueRadians = 0;
+	} else {
+		radianIncrement = 0;
+	}
 
 	// Clear the canvas.
 	ctx.clearRect(0, 0, 505, 606);
 
-	// The first time we execute this code, set some object instance variables.
-	if (this.imageArray.length === 0) {
-		for (i in appImages) {
-			this.imageArray.push(i);
-		}
-		this.theta = Math.PI * 2 / this.imageArray.length;
-	}
+	// Draw the selector.
+	ctx.drawImage(
+		Resources.get('images/Selector.png')
+		, 215
+		, 35
+	);
 
-	// Set the angle for the first image.
-	angle -= this.theta + ((this.currentImage % this.imageArray.length) * this.theta) + (Math.PI / 2);
-
-	// Iterate over the images and place them in a circular arc.
-	for (i in appImages) {
-		img = appImages[i];
-		angle += this.theta;
-		x = 250 + (150 * Math.cos(angle));
-		y = 250 + (150 * Math.sin(angle));
+	// Draw the characters to the screen.
+	for (i = 0; i < this.characterArray.length; i++) {
+		// Perform any radian increment on the character object.
+		this.characterArray[i].radians += radianIncrement;
+		// Grab the character
+	    char = this.characterArray[i];
+	    // Draw the character to the screen.
 		ctx.drawImage(
-			Resources.get(img.sprite)
-			, x - ((img.characterOffsetRight - img.characterOffsetLeft) / 2)
-			, y - ((img.characterOffsetBottom - img.characterOffsetTop) / 2)
+			Resources.get(char.sprite)
+			, 250 + (150 * Math.cos(char.radians)) - ((char.characterOffsetRight - char.characterOffsetLeft) / 2)
+			, 250 + (150 * Math.sin(char.radians)) - ((char.characterOffsetBottom - char.characterOffsetTop) / 2)
 		);
 	}
+
+/*
+	// Clear the canvas.
+	ctx.clearRect(0, 0, 505, 606);
+
+	// Set the radians for the first image.
+	radians -= this.characterSpacingRadians + ((this.currentImage % this.imageArray.length) * this.characterSpacingRadians) + (Math.PI / 2);
+
+	// Iterate over the images and place them in a circular arc.
+	for (i in appCharacters) {
+		char = appCharacters[i];
+		radians += this.characterSpacingRadians;
+		x = 250 + (150 * Math.cos(radians));
+		y = 250 + (150 * Math.sin(radians));
+		ctx.drawImage(
+			Resources.get(char.sprite)
+			, x - ((char.characterOffsetRight - char.characterOffsetLeft) / 2)
+			, y - ((char.characterOffsetBottom - char.characterOffsetTop) / 2)
+		);
+	}
+*/
 }
 
 StartScreen.prototype.handleInput = function(key) {
 	switch(key) {
 		case 'enter':
-			player.setPlayer(this.imageArray[this.currentImage]);
-			this.show = false;
-			break;
-		case 'left':
-			if (this.currentImage > 0) {
-				this.currentImage--;
-			} else {
-				this.currentImage = this.imageArray.length - 1;
+			if (this.queueRadians === 0) {
+				player.setPlayer(this.characterArray[this.characterCurrent].name);
+				this.show = false;
 			}
 			break;
 		case 'right':
-			if (this.currentImage < this.imageArray.length - 1) {
-				this.currentImage++;
+			if (this.characterCurrent > 0) {
+				this.characterCurrent--;
 			} else {
-				this.currentImage = 0;
+				this.characterCurrent = this.characterArray.length - 1;
 			}
+			this.queueRadians += this.characterSpacingRadians;
+			break;
+		case 'left':
+			if (this.characterCurrent < this.characterArray.length - 1) {
+				this.characterCurrent++;
+			} else {
+				this.characterCurrent = 0;
+			}
+			this.queueRadians -= this.characterSpacingRadians;
 			break;
 	}
 };
@@ -246,27 +322,27 @@ Enemy.prototype.getRandomStart = function() {
 
 var Player = function() {
 	this.flyOffSpeed = 0;
-	this.drawAngle = 0;
+	this.drawradians = 0;
 };
 
 Player.prototype = Object.create(Character.prototype);
 
 Player.prototype.setPlayer = function(character){
-	this.sprite = appImages[character].sprite;
-	this.startX = appImages[character].startX;
-	this.startY = appImages[character].startY;
-	this.minX = appImages[character].minX;
-	this.maxX = appImages[character].maxX;
-	this.minY = appImages[character].minY;
-	this.maxY = appImages[character].maxY;
-	this.characterOffsetTop = appImages[character].characterOffsetTop;
-	this.characterOffsetBottom = appImages[character].characterOffsetBottom;
-	this.characterOffsetLeft = appImages[character].characterOffsetLeft;
-	this.characterOffsetRight = appImages[character].characterOffsetRight;
-	this.offScreenLeft = appImages[character].offScreenLeft;
-	this.offScreenRight = appImages[character].offScreenRight;
-	this.imageHeight = appImages[character].imageHeight;
-	this.imageWidth = appImages[character].imageWidth;
+	this.sprite = appCharacters[character].sprite;
+	this.startX = appCharacters[character].startX;
+	this.startY = appCharacters[character].startY;
+	this.minX = appCharacters[character].minX;
+	this.maxX = appCharacters[character].maxX;
+	this.minY = appCharacters[character].minY;
+	this.maxY = appCharacters[character].maxY;
+	this.characterOffsetTop = appCharacters[character].characterOffsetTop;
+	this.characterOffsetBottom = appCharacters[character].characterOffsetBottom;
+	this.characterOffsetLeft = appCharacters[character].characterOffsetLeft;
+	this.characterOffsetRight = appCharacters[character].characterOffsetRight;
+	this.offScreenLeft = appCharacters[character].offScreenLeft;
+	this.offScreenRight = appCharacters[character].offScreenRight;
+	this.imageHeight = appCharacters[character].imageHeight;
+	this.imageWidth = appCharacters[character].imageWidth;
 	this.resetStart();
 }
 
@@ -282,10 +358,10 @@ Player.prototype.update = function(dt) {
 		if (this.x < this.offScreenRight) {
 			// Make the player fly off screen to the right.
 			this.x += dt * this.flyOffSpeed;
-			this.drawAngle += 10;
+			this.drawradians += 10;
 		} else {
 			this.flyOffSpeed = 0;
-			this.drawAngle = 0;
+			this.drawradians = 0;
 			// Reset all enemies.
 			for (i = 0; i < allEnemies.length; i++) {
 				allEnemies[i].stopped = false;
@@ -310,12 +386,12 @@ Player.prototype.update = function(dt) {
 };
 
 Player.prototype.render = function() {
-	if (this.drawAngle != 0) {
+	if (this.drawradians != 0) {
 		var
-			imgCenter = this.x + (this.imageWidth / 2)
-			, imgMiddle = this.y + (this.imageHeight / 2);
-		ctx.translate(imgCenter, imgMiddle);
-		ctx.rotate(this.drawAngle * Math.PI / 180);
+			charCenter = this.x + (this.imageWidth / 2)
+			, charMiddle = this.y + (this.imageHeight / 2);
+		ctx.translate(charCenter, charMiddle);
+		ctx.rotate(this.drawradians * Math.PI / 180);
 		ctx.drawImage(
 		    Resources.get(this.sprite)
 		    , -1 * this.imageWidth / 2
@@ -323,8 +399,8 @@ Player.prototype.render = function() {
 		    , this.imageWidth
 		    , this.imageHeight
 		);
-		ctx.rotate(-1 * this.drawAngle * Math.PI / 180);
-		ctx.translate(-1 * imgCenter, -1 * imgMiddle);
+		ctx.rotate(-1 * this.drawradians * Math.PI / 180);
+		ctx.translate(-1 * charCenter, -1 * charMiddle);
 	} else {
 		ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 	}
