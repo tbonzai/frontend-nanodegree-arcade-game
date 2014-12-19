@@ -5,91 +5,64 @@
 var appCharacters = {
 	'boy': {
 		sprite: 'images/char-boy.png'
-		, startX: 200
-		, startY: 405
-		, minX: 0
-		, maxX: 400
-		, minY: 0
-		, maxY: 400
-		, characterOffsetTop: 13
-		, characterOffsetBottom: 88
-		, characterOffsetLeft: 16
-		, characterOffsetRight: 88
-		, offScreenLeft: -271
-		, offScreenRight: 600
-		, imageHeight: 171
-		, imageWidth: 101
-	},
-	'cat-girl': {
+		, centerX: 51
+		, centerY: 101
+		, offsetLeft: 16
+		, offsetRight: 86
+		, offsetTop: 62
+		, offsetBottom: 136
+	}
+	, 'cat-girl': {
 		sprite: 'images/char-cat-girl.png'
-		, startX: 200
-		, startY: 406
-		, minX: 0
-		, maxX: 400
-		, minY: 0
-		, maxY: 400
-		, characterOffsetTop: 11
-		, characterOffsetBottom: 88
-		, characterOffsetLeft: 16
-		, characterOffsetRight: 83
-		, offScreenLeft: -271
-		, offScreenRight: 600
-		, imageHeight: 171
-		, imageWidth: 101
-	},
-	'horn-girl': {
+		, centerX: 50
+		, centerY: 100
+		, offsetLeft: 15
+		, offsetRight: 86
+		, offsetTop: 60
+		, offsetBottom: 136
+	}
+	, 'horn-girl': {
 		sprite: 'images/char-horn-girl.png'
-		, startX: 200
-		, startY: 406
-		, minX: 0
-		, maxX: 400
-		, minY: 0
-		, maxY: 400
-		, characterOffsetTop: 11
-		, characterOffsetBottom: 88
-		, characterOffsetLeft: 16
-		, characterOffsetRight: 83
-		, offScreenLeft: -271
-		, offScreenRight: 600
-		, imageHeight: 171
-		, imageWidth: 101
-	},
-	'pink-girl': {
+		, centerX: 49
+		, centerY: 100
+		, offsetLeft: 6
+		, offsetRight: 86
+		, offsetTop: 60
+		, offsetBottom: 136
+	}
+	, 'pink-girl': {
 		sprite: 'images/char-pink-girl.png'
-		, startX: 200
-		, startY: 404
-		, minX: 0
-		, maxX: 400
-		, minY: 0
-		, maxY: 400
-		, characterOffsetTop: 12
-		, characterOffsetBottom: 88
-		, characterOffsetLeft: 16
-		, characterOffsetRight: 88
-		, offScreenLeft: -271
-		, offScreenRight: 600
-		, imageHeight: 171
-		, imageWidth: 101
-	},
-	'princess-girl': {
+		, centerX: 51
+		, centerY: 101
+		, offsetLeft: 12
+		, offsetRight: 90
+		, offsetTop: 61
+		, offsetBottom: 138
+	}
+	, 'princess-girl': {
 		sprite: 'images/char-princess-girl.png'
-		, startX: 200
-		, startY: 413
-		, minX: 0
-		, maxX: 400
-		, minY: 0
-		, maxY: 400
-		, characterOffsetTop: 2
-		, characterOffsetBottom: 88
-		, characterOffsetLeft: 16
-		, characterOffsetRight: 87
-		, offScreenLeft: -271
-		, offScreenRight: 600
-		, imageHeight: 171
-		, imageWidth: 101
+		, centerX: 51
+		, centerY: 96
+		, offsetLeft: 12
+		, offsetRight: 90
+		, offsetTop: 51
+		, offsetBottom: 142
+	}
+	, 'bug': {
+		sprite: 'images/enemy-bug.png'
+		, centerX: 50
+		, centerY: 109
+		, offsetLeft: 0
+		, offsetRight: 100
+		, offsetTop: 76
+		, offsetBottom: 142
 	}
 };
 
+/**
+  * This object manages the start screen and builds the appropriate
+  * players and enemies once hte game is ready to go.
+*/
 var StartScreen = function() {
 	this.characterArray = [];
 	this.characterCurrent = 0;
@@ -97,52 +70,26 @@ var StartScreen = function() {
 	this.queueRadians = 0;
 	this.characterSpacingRadians = 0;
 	this.show = true;
-
 };
 
+/**
+  * This function renders elements for the start screen, applying any
+  * rotation queued up by the user.
+*/
 StartScreen.prototype.render = function(dt) {
 	var
 		i
 		, radians
-		, currX
-		, currY
 		, char
 		, radianIncrement;
 
 	// The first time we execute this code, set some object instance variables.
 	if (this.characterArray.length === 0) {
-		// Count the characters.
-		var characterCount = 0;
-		for (i in appCharacters) {
-			characterCount++;
-		}
-		// Calculate the character spacing in radians.
-		this.characterSpacingRadians = Math.PI * 2 / characterCount;
-		// Set the initial character's radians to 270 degrees (straight up) from the 0 axis.
-		radians = Math.PI * 1.5;
-		// Iterate over the characters.
-		for (i in appCharacters) {
-			// Grab the character.
-			char = appCharacters[i];
-			// Calculate the x,y coordinates based on the radians
-			currX = 250 + (150 * Math.cos(radians));
-			currY = 250 + (150 * Math.sin(radians));
-			// Add the character data to our array.
-			this.characterArray.push({
-				name: i
-				, sprite: char.sprite
-				, radians: radians
-				, characterOffsetRight: char.characterOffsetRight
-				, characterOffsetLeft: char.characterOffsetLeft
-				, characterOffsetBottom: char.characterOffsetBottom
-				, characterOffsetTop: char.characterOffsetTop
-			});
-			// Determine the next character's radians.
-			radians += this.characterSpacingRadians;
-		}
+		this.buildCharacterArray();
 	}
 
-	// Determine if there are any radians in the queue
+	// This section monitors for rotation radians in the queue and
+	// sets any necessary rotation to incrementally reduce it.
 	if (this.queueRadians > this.characterSpacingRadians * dt * 2) {
 		radianIncrement = this.characterSpacingRadians * dt * 2;
 		this.queueRadians -= this.characterSpacingRadians * dt * 2;
@@ -159,36 +106,93 @@ StartScreen.prototype.render = function(dt) {
 		radianIncrement = 0;
 	}
 
-	// Clear the canvas.
+	// Set up the start screen.
 	ctx.clearRect(0, 0, 505, 606);
-
-	// Draw the selector image.
 	ctx.drawImage(
 		Resources.get('images/Selector.png')
-		, 215
-		, 35
+		, 200
+		, 20
+	);
+	ctx.font = "16pt Impact"
+	ctx.textAlign = 'center';
+	ctx.fillStyle = 'black';
+	ctx.fillText(
+	    'Select player using left/right keys.'
+	    , 245
+	   	, 75
 	);
 
-	// Draw the characters to the screen.
-	for (i = 0; i < this.characterArray.length; i++) {
-		// Perform any radian increment on the character object.
-		this.characterArray[i].radians += radianIncrement;
-		// Grab the character
-	    char = this.characterArray[i];
-	    // Draw the character to the screen.
-		ctx.drawImage(
-			Resources.get(char.sprite)
-			, 250 + (150 * Math.cos(char.radians)) - ((char.characterOffsetRight - char.characterOffsetLeft) / 2)
-			, 250 + (150 * Math.sin(char.radians)) - ((char.characterOffsetBottom - char.characterOffsetTop) / 2)
+	// If the rotation has stopped, tell the user how to start the game.
+	if (radianIncrement === 0) {
+		ctx.fillText(
+		    'Press enter to start.'
+		    , 255
+		   	, 290
 		);
 	}
-}
+
+	// Draw the characters to the screen appling any necessary rotation.
+	for (i = 0; i < this.characterArray.length; i++) {
+		this.characterArray[i].radians += radianIncrement;
+	    char = this.characterArray[i];
+		ctx.drawImage(
+			Resources.get(char.sprite)
+			, 250 + (150 * Math.cos(char.radians)) - char.centerX
+			, 300 + (150 * Math.sin(char.radians)) - char.centerY
+		);
+	}
+};
+
+/**
+  * This builds the character array used by the start screen, setting
+  * their initial positions.
+*/
+StartScreen.prototype.buildCharacterArray = function() {
+	// Count the characters in the App Characters object.
+	var characterCount = 0;
+	for (i in appCharacters) {
+		characterCount++;
+	}
+	// Calculate the character spacing in radians.
+	this.characterSpacingRadians = Math.PI * 2 / characterCount;
+	// Set the initial character's radians to 270 degrees (straight up) from the 0 axis.
+	radians = Math.PI * 1.5;
+	// Iterate over the characters adding them to our array.
+	for (i in appCharacters) {
+		char = appCharacters[i];
+		this.characterArray.push({
+			name: i
+			, sprite: char.sprite
+			, radians: radians
+			, centerX: char.centerX
+			, centerY: char.centerY
+		});
+		radians += this.characterSpacingRadians;
+	}
+};
 
 StartScreen.prototype.handleInput = function(key) {
 	switch(key) {
 		case 'enter':
+			// Only allow the game to begin if the rotation has stopped.
 			if (this.queueRadians === 0) {
-				player.setPlayer(this.characterArray[this.characterCurrent].name);
+				allEnemies.splice(0, allEnemies.length);
+				player.setCharacter(this.characterArray[this.characterCurrent].name);
+				if (this.characterArray[this.characterCurrent].name === 'bug') {
+					// Make enemies of all the other characters
+					for (var i = 0; i < this.characterArray.length; i++) {
+						if (this.characterArray[i].name != 'bug') {
+							allEnemies.push(new Enemy(this.characterArray[i].name, 300 + (i * 100)));
+						}
+					}
+				} else {
+					// Create a number of bug enemies equal to the count of the non-bug characters.
+					for (var i = 0; i < this.characterArray.length; i++) {
+						if (this.characterArray[i].name != 'bug') {
+							allEnemies.push(new Enemy('bug', 300 + (i * 100)));
+						}
+					}
+				}
 				this.show = false;
 			}
 			break;
@@ -224,41 +228,41 @@ var Character = function() {
 	this.maxX = 0;
 	this.minY = 0;
 	this.maxY = 0;
-	this.characterOffsetLeft = 0;
-	this.characterOffsetRight = 0;
-	this.characterOffsetTop = 0;
-	this.characterOffsetBottom = 0;
+	this.offsetLeft = 0;
+	this.offsetRight = 0;
+	this.offsetTop = 0;
+	this.offsetBottom = 0;
 	this.offScreenLeft = 0;
 	this.offScreenRight = 0;
-	this.imageHeight = 0;
-	this.imageWidth = 0;
 };
 
 Character.prototype.getCharacterLeftEdge = function() {
-	return this.x + this.characterOffsetLeft;
+	return this.x + this.offsetLeft;
 };
 
 Character.prototype.getCharacterRightEdge = function() {
-	return this.x + this.characterOffsetRight;
+	return this.x + this.offsetRight;
 };
 
 Character.prototype.getCharacterTopEdge = function() {
-	return this.y + this.characterOffsetTop;
+	return this.y + this.offsetTop;
 };
 
 Character.prototype.getCharacterBottomEdge = function() {
-	return this.y + this.characterOffsetBottom;
+	return this.y + this.offsetBottom;
 };
 
 // Enemies our player must avoid
 var Enemy = function(character, speed) {
-	this.sprite = 'images/enemy-bug.png';
-	this.characterOffsetTop = 27;
-	this.characterOffsetBottom = 92;
-	this.characterOffsetLeft = 1;
-	this.characterOffsetRight = 99;
-	this.offScreenLeft = -271;
-	this.offScreenRight = 600;
+	this.sprite = appCharacters[character].sprite;
+	this.centerX = appCharacters[character].centerX;
+	this.centerY = appCharacters[character].centerY;
+	this.offsetTop = appCharacters[character].offsetTop;
+	this.offsetBottom = appCharacters[character].offsetBottom;
+	this.offsetLeft = appCharacters[character].offsetLeft;
+	this.offsetRight = appCharacters[character].offsetRight;
+	this.offScreenLeft = -100
+	this.offScreenRight = 650;
 	this.speed = speed;
 	this.stopped = false;
 	this.getRandomStart();
@@ -289,7 +293,7 @@ Enemy.prototype.render = function() {
 
 Enemy.prototype.getRandomStart = function() {
 	// The lanes start at y coordinate 62 and have an 83px spacing.
-	this.y = (Math.floor((Math.random() * 3)) * 83) + (this.characterOffsetBottom - this.characterOffsetTop - 3);
+	this.y = 172 + (Math.floor((Math.random() * 3)) * 83) - this.centerY;
 	this.x = this.offScreenLeft;
 };
 
@@ -301,27 +305,32 @@ Enemy.prototype.getRandomStart = function() {
 
 var Player = function() {
 	this.flyOffSpeed = 0;
-	this.drawradians = 0;
+	this.rotationAngle = 0;
+	this.minX = 0;
+	this.maxX = 400;
+	this.minY = 0;
+	this.maxY = 400;
 };
 
 Player.prototype = Object.create(Character.prototype);
 
-Player.prototype.setPlayer = function(character){
+Player.prototype.setCharacter = function(character){
 	this.sprite = appCharacters[character].sprite;
-	this.startX = appCharacters[character].startX;
-	this.startY = appCharacters[character].startY;
-	this.minX = appCharacters[character].minX;
-	this.maxX = appCharacters[character].maxX;
-	this.minY = appCharacters[character].minY;
-	this.maxY = appCharacters[character].maxY;
-	this.characterOffsetTop = appCharacters[character].characterOffsetTop;
-	this.characterOffsetBottom = appCharacters[character].characterOffsetBottom;
-	this.characterOffsetLeft = appCharacters[character].characterOffsetLeft;
-	this.characterOffsetRight = appCharacters[character].characterOffsetRight;
-	this.offScreenLeft = appCharacters[character].offScreenLeft;
-	this.offScreenRight = appCharacters[character].offScreenRight;
-	this.imageHeight = appCharacters[character].imageHeight;
-	this.imageWidth = appCharacters[character].imageWidth;
+	this.startX = 200;
+	this.startY = 505 - appCharacters[character].centerY;
+	this.centerX = appCharacters[character].centerX;
+	this.centerY = appCharacters[character].centerY;
+	this.offsetLeft = appCharacters[character].offsetLeft;
+	this.offsetRight = appCharacters[character].offsetRight;
+	this.offsetTop = appCharacters[character].offsetTop;
+	this.offsetBottom = appCharacters[character].offsetBottom;
+	this.offScreenRight = 600;
+	this.imageHeight = 171;
+	this.imageWidth = 101;
+	this.flyOffSpeed = 0;
+	this.rotationAngle = 0;
+	this.showInstructions = true;
+	this.lives = 3;
 	this.resetStart();
 }
 
@@ -337,15 +346,17 @@ Player.prototype.update = function(dt) {
 		if (this.x < this.offScreenRight) {
 			// Make the player fly off screen to the right.
 			this.x += dt * this.flyOffSpeed;
-			this.drawradians += 10;
+			this.y -= dt * 50;
+			this.rotationAngle += dt * 600;
 		} else {
 			this.flyOffSpeed = 0;
-			this.drawradians = 0;
+			this.rotationAngle = 0;
 			// Reset all enemies.
 			for (i = 0; i < allEnemies.length; i++) {
 				allEnemies[i].stopped = false;
 				allEnemies[i].getRandomStart();
 			}
+			this.lives--;
 			this.resetStart();
 		}
 	} else {
@@ -365,46 +376,158 @@ Player.prototype.update = function(dt) {
 };
 
 Player.prototype.render = function() {
-	if (this.drawradians != 0) {
-		var
-			charCenter = this.x + (this.imageWidth / 2)
-			, charMiddle = this.y + (this.imageHeight / 2);
-		ctx.translate(charCenter, charMiddle);
-		ctx.rotate(this.drawradians * Math.PI / 180);
+	var i;
+	// Draw the keys representing player lives on the bottom to the screen.
+	for (i = 0; i < this.lives; i++) {
 		ctx.drawImage(
-		    Resources.get(this.sprite)
-		    , -1 * this.imageWidth / 2
-		    , -1 * this.imageHeight / 2
-		    , this.imageWidth
-		    , this.imageHeight
+		    Resources.get('images/Key.png')
+		    , 455 - (i * 32)
+		    , 527
+		    , 65
+		    , 65
 		);
-		ctx.rotate(-1 * this.drawradians * Math.PI / 180);
-		ctx.translate(-1 * charCenter, -1 * charMiddle);
-	} else {
-		ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 	}
+
+	ctx.drawImage(
+	    Resources.get('images/Rock.png')
+	    , 400
+	    , 40
+	    , 100
+	    , 100
+	);
+
+	if (this.lives === 0) {
+		// Display the character selection instructions on the screen.
+		ctx.font = "normal normal 50px arial"
+		ctx.textAlign = 'center';
+		ctx.strokeStyle = 'black';
+		ctx.lineWidth = 2;
+		ctx.fillStyle = 'white';
+		ctx.fillText(
+		    'Game Over'
+		    , 245
+		   	, 240
+		);
+		ctx.strokeText(
+		    'Game Over'
+		    , 245
+		   	, 240
+		);
+		ctx.font = "normal normal 45px arial"
+		ctx.fillText(
+		    'Press enter to continue'
+		    , 245
+		   	, 340
+		);
+		ctx.strokeText(
+		    'Press enter to continue'
+		    , 245
+		   	, 340
+		);
+	} else {
+		if (this.showInstructions) {
+			ctx.font = "normal normal 35px arial"
+			ctx.textAlign = 'center';
+			ctx.strokeStyle = 'blue';
+			ctx.lineWidth = 1;
+			ctx.fillStyle = 'black';
+			ctx.fillText(
+			    'Retrieve the gem'
+			    , 248
+			   	, 185
+			);
+			ctx.strokeText(
+			    'Retrieve the gem'
+			    , 248
+			   	, 185
+			);
+			ctx.fillText(
+			    'and bring it back.'
+			    , 248
+			   	, 268
+			);
+			ctx.strokeText(
+			    'and bring it back.'
+			    , 248
+			   	, 268
+			);
+			ctx.fillText(
+			    'Avoid the traffic'
+			    , 248
+			   	, 351
+			);
+			ctx.strokeText(
+			    'Avoid the traffic'
+			    , 248
+			   	, 351
+			);
+			ctx.fillText(
+			    'and the water.'
+			    , 248
+			   	, 434
+			);
+			ctx.strokeText(
+			    'and the water.'
+			    , 248
+			   	, 434
+			);
+		}
+		if (this.rotationAngle != 0) {
+			ctx.translate(this.x + this.centerX, this.y + this.centerY);
+			ctx.rotate(this.rotationAngle * Math.PI / 180);
+			ctx.drawImage(
+			    Resources.get(this.sprite)
+			    , -1 * this.centerX
+			    , -1 * this.centerY
+			);
+			ctx.rotate(-1 * this.rotationAngle * Math.PI / 180);
+			ctx.translate(-1 * (this.x + this.centerX), -1 * (this.y + this.centerY));
+		} else {
+			ctx.drawImage(
+			    Resources.get(this.sprite)
+			    , this.x
+			    , this.y
+			);
+		}
+	}
+	ctx.drawImage(
+	    Resources.get('images/Gem Blue.png')
+	    , 435
+	    , 70
+	    , 25
+	    , 40
+	);
 };
 
 Player.prototype.handleInput = function(key) {
 	switch(key) {
+		case 'enter':
+			if (this.lives === 0) {
+				startScreen.show = true;
+			}
+			break;
 		case 'up':
 			if (this.y > this.minY && this.flyOffSpeed === 0) {
 				this.y -= 83;
 			}
+			this.showInstructions = false;
 			break;
 		case 'down':
 			if (this.y < this.maxY && this.flyOffSpeed === 0) {
 				this.y += 83;
 			}
+			this.showInstructions = false;
 			break;
 		case 'left':
 			if (this.x > this.minX && this.flyOffSpeed === 0) {
 				this.x -= 101;
 			}
+			this.showInstructions = false;
 			break;
 		case 'right':
 			if (this.x < this.maxX && this.flyOffSpeed === 0) {
 				this.x += 101;
+			this.showInstructions = false;
 			}
 			break;
 	}
@@ -413,11 +536,7 @@ Player.prototype.handleInput = function(key) {
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
-var allEnemies = [
-	new Enemy('bug', 400)
-	, new Enemy('bug', 500)
-	, new Enemy('bug', 600)
-];
+var allEnemies = [];
 
 var player = new Player();
 
