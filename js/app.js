@@ -318,6 +318,10 @@ Player.prototype.setCharacter = function(character){
 	this.sprite = appCharacters[character].sprite;
 	this.startX = 200;
 	this.startY = 505 - appCharacters[character].centerY;
+	this.startColumn = 3;
+	this.startRow = 6;
+	this.currentColumn = 3;
+	this.currentRow = 6;
 	this.centerX = appCharacters[character].centerX;
 	this.centerY = appCharacters[character].centerY;
 	this.offsetLeft = appCharacters[character].offsetLeft;
@@ -331,16 +335,66 @@ Player.prototype.setCharacter = function(character){
 	this.rotationAngle = 0;
 	this.showInstructions = true;
 	this.lives = 3;
-	this.resetStart();
+	this.gems = [{
+			sprite: 'images/Gem Blue.png'
+			, x: 441
+			, y: 70
+			, startX: 441
+			, startY: 70
+			, acquiredX: 8
+			, acquiredY: 540
+			, pickupColumn: 5
+			, pickupRow: 1
+			, rockX: 400
+			, rockY: 40
+		}
+		, {
+			sprite: 'images/Gem Green.png'
+			, x: 241
+			, y: 70
+			, startX: 241
+			, startY: 70
+			, acquiredX: 40
+			, acquiredY: 540
+			, pickupColumn: 3
+			, pickupRow: 1
+			, rockX: 200
+			, rockY: 40
+		}
+		, {
+			sprite: 'images/Gem Orange.png'
+			, x: 41
+			, y: 70
+			, startX: 41
+			, startY: 70
+			, acquiredX: 72
+			, acquiredY: 540
+			, pickupColumn: 1
+			, pickupRow: 1
+			, rockX: 0
+			, rockY: 40
+		}
+	];
+	this.gemMoveX = 0;
+	this.gemMoveY = 0;
+	this.currentGem = 0;
+	this.gemInHand = false;
+	this.resetToStart();
 }
 
-Player.prototype.resetStart = function() {
+Player.prototype.resetToStart = function() {
 	this.x = this.startX;
 	this.y = this.startY;
+	this.currentColumn = this.startColumn;
+	this.currentRow = this.startRow;
+	this.gems[this.currentGem].x = this.gems[this.currentGem].startX;
+	this.gems[this.currentGem].y = this.gems[this.currentGem].startY;
+	this.gemInHand = false;
 };
 
 Player.prototype.update = function(dt) {
-	var i;
+	var
+		i;
 
 	if (this.flyOffSpeed > 0) {
 		if (this.x < this.offScreenRight) {
@@ -357,7 +411,7 @@ Player.prototype.update = function(dt) {
 				allEnemies[i].getRandomStart();
 			}
 			this.lives--;
-			this.resetStart();
+			this.resetToStart();
 		}
 	} else {
 		// Iterate over the enemies and check for an image overlap on the player.
@@ -371,12 +425,28 @@ Player.prototype.update = function(dt) {
 				allEnemies[i].stopped = true;
 			}
 		}
+		// Determine if we've grabbed the gem.
+		if (this.gemInHand === false) {
+			if (this.currentColumn === this.gems[this.currentGem].pickupColumn
+			    && this.currentRow === this.gems[this.currentGem].pickupRow) {
+				this.gemInHand = true;
+				this.gems[this.currentGem].y = 90;
+				this.gems[this.currentGem].pickupColumn = -1;
+				this.gems[this.currentGem].pickupRow = -1;
+			}
+		} else if (this.gems[this.currentGem].y > 400 && this.gemMoveX === 0 && this.gemMoveY === 0) {
+			this.gemInHand = false;
+			this.gemMoveX = (this.gems[this.currentGem].x - this.gems[this.currentGem].acquiredX) * dt;
+			this.gemMoveY = (this.gems[this.currentGem].y - this.gems[this.currentGem].acquiredY) * dt;
+		}
 	}
 
 };
 
 Player.prototype.render = function() {
-	var i;
+	var
+		i
+		, diff;
 	// Draw the keys representing player lives on the bottom to the screen.
 	for (i = 0; i < this.lives; i++) {
 		ctx.drawImage(
@@ -387,11 +457,21 @@ Player.prototype.render = function() {
 		    , 65
 		);
 	}
-
+	// Draw any acquired gems.
+	for (i = 0; i < this.currentGem; i++) {
+		ctx.drawImage(
+		    Resources.get(this.gems[i].sprite)
+		    , 8 + (i * 32)
+		    , 540
+		    , 25
+		    , 40
+		);
+	}
+	// Draw the rock where the target gem will rest.
 	ctx.drawImage(
 	    Resources.get('images/Rock.png')
-	    , 400
-	    , 40
+	    , this.gems[this.currentGem].rockX
+	    , this.gems[this.currentGem].rockY
 	    , 100
 	    , 100
 	);
@@ -490,13 +570,35 @@ Player.prototype.render = function() {
 			);
 		}
 	}
-	ctx.drawImage(
-	    Resources.get('images/Gem Blue.png')
-	    , 435
-	    , 70
-	    , 25
-	    , 40
-	);
+	if (this.flyOffSpeed === 0) {
+		// Draw the current target gem.
+		if (this.gemMoveX != 0) {
+			diff = this.gems[this.currentGem].x - this.gems[this.currentGem].acquiredX;
+			if (Math.abs(diff) <= Math.abs(this.gemMoveX)) {
+				this.gems[this.currentGem].x = this.gems[this.currentGem].acquiredX;
+				this.gemMoveX = 0;
+			} else {
+				this.gems[this.currentGem].x -= this.gemMoveX;
+			}
+		}
+		if (this.gemMoveY != 0) {
+			diff = this.gems[this.currentGem].y - this.gems[this.currentGem].acquiredY;
+			if (Math.abs(diff) <= Math.abs(this.gemMoveY)) {
+				this.gems[this.currentGem].y = this.gems[this.currentGem].acquiredY;
+				this.gemMoveY = 0;
+				this.currentGem++;
+			} else {
+				this.gems[this.currentGem].y -= this.gemMoveY;
+			}
+		}
+		ctx.drawImage(
+		    Resources.get(this.gems[this.currentGem].sprite)
+		    , this.gems[this.currentGem].x
+		    , this.gems[this.currentGem].y
+		    , 25
+		    , 40
+		);
+	}
 };
 
 Player.prototype.handleInput = function(key) {
@@ -509,26 +611,42 @@ Player.prototype.handleInput = function(key) {
 		case 'up':
 			if (this.y > this.minY && this.flyOffSpeed === 0) {
 				this.y -= 83;
+				this.currentRow--;
+				if (this.gemInHand === true) {
+					this.gems[this.currentGem].y -= 83;
+				}
 			}
 			this.showInstructions = false;
 			break;
 		case 'down':
 			if (this.y < this.maxY && this.flyOffSpeed === 0) {
 				this.y += 83;
+				this.currentRow++;
+				if (this.gemInHand === true) {
+					this.gems[this.currentGem].y += 83;
+				}
 			}
 			this.showInstructions = false;
 			break;
 		case 'left':
 			if (this.x > this.minX && this.flyOffSpeed === 0) {
 				this.x -= 101;
+				this.currentColumn--;
+				if (this.gemInHand === true) {
+					this.gems[this.currentGem].x -= 101;
+				}
 			}
 			this.showInstructions = false;
 			break;
 		case 'right':
 			if (this.x < this.maxX && this.flyOffSpeed === 0) {
 				this.x += 101;
-			this.showInstructions = false;
+				this.currentColumn++;
+				if (this.gemInHand === true) {
+					this.gems[this.currentGem].x += 101;
+				}
 			}
+			this.showInstructions = false;
 			break;
 	}
 };
