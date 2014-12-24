@@ -47,12 +47,8 @@ var Engine = (function(global) {
         /* Call our update/render functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
-        if (startScreen.show) {
-            startScreen.render(dt);
-        } else {
-            update(dt);
-            render();
-        }
+        update(dt);
+        render(dt);
 
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
@@ -86,7 +82,26 @@ var Engine = (function(global) {
      */
     function update(dt) {
         updateEntities(dt);
-        // checkCollisions();
+        eventCheck();
+    }
+
+    function eventCheck() {
+        if (consumeLife === true || player.isDying() === true) {
+            return;
+        }
+        // Iterate over the enemies and check for an character overlap on the player.
+        for (i = 0; i < allEnemies.length; i++) {
+            if (player.getCharacterLeftEdge() < allEnemies[i].getCharacterRightEdge()
+                && player.getCharacterRightEdge() > allEnemies[i].getCharacterLeftEdge()
+                && player.getCharacterTopEdge() < allEnemies[i].getCharacterBottomEdge()
+                && player.getCharacterBottomEdge() > allEnemies[i].getCharacterTopEdge()) {
+                // We have a collision. Transfer the motion from the enemy to the player.
+                player.setFlyoff(allEnemies[i].getSpeed());
+                allEnemies[i].setStopped();
+            }
+        }
+        player.checkDrowning(gems.getPickupColumn());
+        gems.checkPickup(player.getCurrentColumn(), player.getCurrentRow());
     }
 
     /* This is called by the update function  and loops through all of the
@@ -100,7 +115,9 @@ var Engine = (function(global) {
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
+        startScreen.update(dt);
         player.update(dt);
+        gems.update(player.getCurrentColumn(), player.getCurrentRow(), dt);
     }
 
     /* This function initially draws the "game level", it will then call
@@ -109,41 +126,77 @@ var Engine = (function(global) {
      * they are flipbooks creating the illusion of animation but in reality
      * they are just drawing the entire screen over and over.
      */
-    function render() {
-        /* This array holds the relative URL to the image used
-         * for that particular row of the game level.
-         */
-        var rowImages = [
-                'images/water-block.png',   // Top row is water
-                'images/stone-block.png',   // Row 1 of 3 of stone
-                'images/stone-block.png',   // Row 2 of 3 of stone
-                'images/stone-block.png',   // Row 3 of 3 of stone
-                'images/grass-block.png',   // Row 1 of 2 of grass
-                'images/grass-block.png'    // Row 2 of 2 of grass
-            ],
-            numRows = 6,
-            numCols = 5,
-            row, col;
+    function render(dt) {
+        var
+            i = 0
+            , char;
 
-        /* Loop through the number of rows and columns we've defined above
-         * and, using the rowImages array, draw the correct image for that
-         * portion of the "grid"
-         */
-        for (row = 0; row < numRows; row++) {
-            for (col = 0; col < numCols; col++) {
-                /* The drawImage function of the canvas' context element
-                 * requires 3 parameters: the image to draw, the x coordinate
-                 * to start drawing and the y coordinate to start drawing.
-                 * We're using our Resources helpers to refer to our images
-                 * so that we get the benefits of caching these images, since
-                 * we're using them over and over.
-                 */
-                ctx.drawImage(Resources.get(rowImages[row]), col * 101, row * 83);
+        if (showStartScreen === true) {
+            if (selectedCharacter === '') {
+                startScreen.render();
+            } else {
+                gems.resetAll();
+                bubbles.createBubbles();
+                player.setCharacter(selectedCharacter);
+                allEnemies.splice(0, allEnemies.length);
+                for (char in appCharacters) {
+                    i++;
+                    if (char != 'bug') {
+                        if (selectedCharacter === 'bug') {
+                            allEnemies.push(new Enemy(char, 300 + (i * 100)));
+                        } else {
+                            allEnemies.push(new Enemy('bug', 300 + (i * 100)));
+                        }
+                    }
+                }
+                selectedCharacter = '';
+                livesRemaining = livesAllowed;
+                showStartScreen = false;
             }
+        } else if (consumeLife === true) {
+            livesRemaining--;
+            gems.resetToStart();
+            player.resetToStart();
+            // Reset all enemies.
+            for (i = 0; i < allEnemies.length; i++) {
+                allEnemies[i].stopped = false;
+                allEnemies[i].getRandomStart();
+            }
+            consumeLife = false;
+        } else {
+            /* This array holds the relative URL to the image used
+             * for that particular row of the game level.
+             */
+            var rowImages = [
+                    'images/water-block.png',   // Top row is water
+                    'images/stone-block.png',   // Row 1 of 3 of stone
+                    'images/stone-block.png',   // Row 2 of 3 of stone
+                    'images/stone-block.png',   // Row 3 of 3 of stone
+                    'images/grass-block.png',   // Row 1 of 2 of grass
+                    'images/grass-block.png'    // Row 2 of 2 of grass
+                ],
+                numRows = 6,
+                numCols = 5,
+                row, col;
+
+            /* Loop through the number of rows and columns we've defined above
+             * and, using the rowImages array, draw the correct image for that
+             * portion of the "grid"
+             */
+            for (row = 0; row < numRows; row++) {
+                for (col = 0; col < numCols; col++) {
+                    /* The drawImage function of the canvas' context element
+                     * requires 3 parameters: the image to draw, the x coordinate
+                     * to start drawing and the y coordinate to start drawing.
+                     * We're using our Resources helpers to refer to our images
+                     * so that we get the benefits of caching these images, since
+                     * we're using them over and over.
+                     */
+                    ctx.drawImage(Resources.get(rowImages[row]), col * 101, row * 83);
+                }
+            }
+            renderEntities();
         }
-
-
-        renderEntities();
     }
 
     /* This function is called by the render function and is called on each game
@@ -154,11 +207,53 @@ var Engine = (function(global) {
         /* Loop through all of the objects within the allEnemies array and call
          * the render function you have defined.
          */
+        // Clear the area where the queen's crown sometimes extends beyond the height of the top row.
+        ctx.clearRect(0, 0, 505, 50);
         allEnemies.forEach(function(enemy) {
             enemy.render();
         });
+        renderLives();
+        gems.renderAcquired();
+        gems.renderRock();
+        if (livesRemaining > 0) {
+            if (showInstructions) {
+                ctx.font = "normal normal 45px arial"
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#FF0000';
+                ctx.fillText('Retrieve the gem', 248, 185);
+                ctx.fillText('and bring it back.', 248, 268);
+                ctx.fillText('Avoid the traffic', 248, 351);
+                ctx.fillText('and the water.', 248, 434);
+            }
+            player.render();
+            if (player.isDrowning()) {
+                // Draw bubbles
+                bubbles.render(player.getCurrentColumn(), player.getWaterDepth());
+            }
+        } else {
+            // Display the character selection instructions on the screen.
+            ctx.font = "normal normal 50px arial"
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#FF0000';
+            ctx.fillText('Game Over', 248, 185);
+            ctx.font = "normal normal 45px arial"
+            ctx.fillText('Press enter to continue', 248, 351);
+        }
+        gems.renderTarget();
+    }
 
-        player.render();
+    function renderLives() {
+        // Draw the keys representing player lives on the bottom to the screen.
+        for (i = 0; i < livesRemaining; i++) {
+            ctx.drawImage(
+                Resources.get('images/Key.png')
+                , 455 - (i * 32)
+                , 527
+                , 65
+                , 65
+            );
+        }
+
     }
 
     /* This function does nothing but it could have been a good place to
