@@ -1,14 +1,7 @@
-
-var
-	livesAllowed = 3
-	, livesRemaining = 3
-	, showStartScreen = true
-	, showInstructions = true
-	, showStarburst = true
-	, playerDrown = false
-	, consumeLife = false
-	, selectedCharacter = '';
-
+/**
+  * These are global variables that control game play.
+*/
+var livesAllowed = 3;
 
 /**
   * This object contains details about the images in the game. It allows images
@@ -73,7 +66,7 @@ var appCharacters = {
 
 /**
   * This object manages the start screen and builds the appropriate
-  * players and enemies once hte game is ready to go.
+  * players and enemies once the game is ready to go.
 */
 var StartScreen = function() {
 	this._chars = [];
@@ -81,8 +74,29 @@ var StartScreen = function() {
 	this._spacingInRadians = 0;
 	this._queueRadians = 0;
 	this._radianIncrement = 0;
+	this._selectedCharacter = '';
 };
 
+/**
+  * This accessor method returns the selected character.
+  * @return {string} - The selected character's name.
+*/
+StartScreen.prototype.getSelectedCharacter = function() {
+	return this._selectedCharacter;
+}
+
+/**
+  * This accessor method resets the selected player.
+*/
+StartScreen.prototype.resetAll = function() {
+	this._selectedCharacter = '';
+}
+
+/**
+  * This method updates the start screen settings in preparation for rendering.
+  * @param {decimal} dt - A time delta value based on the user's computer processing
+  *   speed which will allow a consistent rate of movement for all computers.
+*/
 StartScreen.prototype.update = function(dt) {
 	var i;
 
@@ -176,12 +190,16 @@ StartScreen.prototype.buildCharacterArray = function() {
 	}
 };
 
+/**
+  * This method handles user input on the start screen.
+  * @param {string} key - The key pressed by the user.
+*/
 StartScreen.prototype.handleInput = function(key) {
 	switch(key) {
 		case 'enter':
 			// Only allow the game to begin if the rotation has stopped.
 			if (this._queueRadians === 0) {
-				selectedCharacter = this._chars[this._characterCurrent].name;
+				this._selectedCharacter = this._chars[this._characterCurrent].name;
 			}
 			break;
 		case 'right':
@@ -204,180 +222,63 @@ StartScreen.prototype.handleInput = function(key) {
 	}
 };
 
-
 /**
-  * This object manages the star burst screen.
-*/
-var StarBurst = function() {
-	this._stars = [];
-	this._starCount = 5;
-	this._spacingInRadians = 0;
-	this._queueRadians = 0;
-	this._radianIncrement = 0;
-};
-
-StarBurst.prototype.update = function(dt) {
-	var i;
-
-	// The first time we execute this code, set some object instance variables.
-	if (this._stars.length === 0) {
-		this.buildStarArray();
-	}
-
-	// This section monitors for rotation radians in the queue and
-	// sets any necessary rotation to incrementally reduce it.
-	if (this._queueRadians > this._spacingInRadians * dt * 2) {
-		this._radianIncrement = this._spacingInRadians * dt * 2;
-		this._queueRadians -= this._spacingInRadians * dt * 2;
-	} else if (this._queueRadians > 0) {
-		this._radianIncrement = this._queueRadians;
-		this._queueRadians = 0;
-	} else if (this._queueRadians < (this._spacingInRadians * dt * -2)) {
-		this._radianIncrement = this._spacingInRadians * dt * -2;
-		this._queueRadians += this._spacingInRadians * dt * 2;
-	} else if (this._queueRadians < 0) {
-		this._radianIncrement = this._queueRadians;
-		this._queueRadians = 0;
-	} else {
-		this._radianIncrement = 0;
-	}
-}
-
-/**
-  * This function renders elements for the start burst screen.
-*/
-StarBurst.prototype.render = function() {
-	var
-		i
-		, char;
-
-	// Set up the start screen.
-	ctx.clearRect(0, 0, 505, 606);
-	ctx.drawImage(Resources.get('images/Selector.png'), 200, 50);
-	ctx.font = "16pt Impact"
-	ctx.textAlign = 'center';
-	ctx.fillStyle = 'black';
-	ctx.fillText('Select player using left/right keys.', 245, 75);
-
-	// Draw the characters to the screen appling any necessary rotation.
-	for (i = 0; i < this._chars.length; i++) {
-		this._chars[i].radians += this._radianIncrement;
-	    char = this._chars[i];
-		ctx.drawImage(
-			Resources.get(char.sprite)
-			, 250 + (150 * Math.cos(char.radians)) - char.centerX
-			, 300 + (150 * Math.sin(char.radians)) - char.centerY
-		);
-	}
-
-	// If the rotation has stopped, tell the user how to start the game.
-	if (this._radianIncrement === 0) {
-		ctx.fillText('Press enter to start.', 255, 290);
-	}
-};
-
-/**
-  * This builds the star array used by the star burst screen, setting
-  * their initial positions.
-*/
-StarBurst.prototype.buildStarArray = function() {
-	// Count the characters in the App Characters object.
-	var
-		i
-		, radians;
-
-	// Calculate the star spacing in radians.
-	this._spacingInRadians = Math.PI * 2 / this._starCount;
-	// Set the initial star's radians to 270 degrees (straight up) from the 0 axis.
-	radians = Math.PI * 1.5;
-	// Clear any existing stars.
-	this._stars.splice(0, this._starCount);
-	// Create new stars.
-	for (i = 0; i < this._starCount; i++) {
-		this._stars.push({
-			radians: radians
-			, rotation: 0
-			, x: 0
-			, y: 0
-			, centerX: 50
-			, centerY: 101
-			, offsetCenterX: 50
-			, offsetCenterY: 101
-		});
-		radians += this._spacingInRadians;
-	}
-};
-
-StarBurst.prototype.handleInput = function(key) {
-	switch(key) {
-		case 'enter':
-			// Only allow the game to begin if the rotation has stopped.
-			if (this._queueRadians === 0) {
-				selectedCharacter = this._chars[this._characterCurrent].name;
-			}
-			break;
-		case 'right':
-			if (this._characterCurrent > 0) {
-				this._characterCurrent--;
-			} else {
-				this._characterCurrent = this._chars.length - 1;
-			}
-			this._queueRadians += this._spacingInRadians;
-			break;
-		case 'left':
-			if (this._characterCurrent < this._chars.length - 1) {
-				this._characterCurrent++;
-			} else {
-				this._characterCurrent = 0;
-			}
-			this._queueRadians -= this._spacingInRadians;
-			break;
-
-	}
-};
-
-
-/**
-  * This is a super class from which all game characters will inherit methods and properties.
+  * This is a super class from which all game characters will inherit some methods and properties.
 */
 var Character = function() {
+	this._sprite = '';
 	this._x = 0;
 	this._y = 0;
-	this._startX = 0;
-	this._startY = 0;
-	this._minX = 0;
-	this._maxX = 0;
-	this._minY = 0;
-	this._maxY = 0;
-	this._offsetLeft = 0;
-	this._offsetRight = 0;
+	this._centerX = 0;
+	this._centerY = 0;
 	this._offsetTop = 0;
 	this._offsetBottom = 0;
+	this._offsetLeft = 0;
+	this._offsetRight = 0;
 	this._offScreenLeft = 0;
 	this._offScreenRight = 0;
 };
 
+/**
+  * This accessor method will return the canvas X coordinate for the left edge of a character's visible image.
+  * @return {int} - The canvas X coordinate.
+*/
 Character.prototype.getCharacterLeftEdge = function() {
 	return this._x + this._offsetLeft;
 };
 
+/**
+  * This accessor method will return the canvas X coordinate for the right edge of a character's visible image.
+  * @return {int} - The canvas X coordinate.
+*/
 Character.prototype.getCharacterRightEdge = function() {
 	return this._x + this._offsetRight;
 };
 
+/**
+  * This accessor method will return the canvas Y coordinate for the top edge of a character's visible image.
+  * @return {int} - The canvas Y coordinate.
+*/
 Character.prototype.getCharacterTopEdge = function() {
 	return this._y + this._offsetTop;
 };
 
+/**
+  * This accessor method will return the canvas Y coordinate for the bottom edge of a character's visible image.
+  * @return {int} - The canvas Y coordinate.
+*/
 Character.prototype.getCharacterBottomEdge = function() {
 	return this._y + this._offsetBottom;
 };
 
-// Enemies our player must avoid
+/**
+  * This is the class for the enemy character(s) which our player must avoid.
+  * @param {string} character - The name of the 'appCharacters' character who will become the enemy.
+  * @param {int} speed - The speed at which the enemy character will move.
+*/
 var Enemy = function(character, speed) {
+	Character.call(this);
 	this._sprite = appCharacters[character].sprite;
-	this._x = 0;
-	this._y = 0;
 	this._centerX = appCharacters[character].centerX;
 	this._centerY = appCharacters[character].centerY;
 	this._offsetTop = appCharacters[character].offsetTop;
@@ -391,15 +292,17 @@ var Enemy = function(character, speed) {
 	this.getRandomStart();
 };
 
+/**
+  * Inherit prototypes from the super class.
+*/
 Enemy.prototype = Object.create(Character.prototype);
 
-// Update the enemy's position, required method for game
-// Parameter: dt, a time delta between ticks
+/**
+  * This method will update the enemy object's position.
+  * @param {decimal} dt - A time delta value based on the user's computer processing
+  *   speed which will allow a consistent rate of movement for all computers.
+*/
 Enemy.prototype.update = function(dt) {
-	// You should multiply any movement by the dt parameter
-	// which will ensure the game runs at the same speed for
-	// all computers.
-	// Check the x coordinate to see if they are on the screen.
 	if (!this._stopped) {
 		if (this._x < this._offScreenRight) {
 			this._x += dt * this._speed;
@@ -409,30 +312,42 @@ Enemy.prototype.update = function(dt) {
 	}
 };
 
-// Draw the enemy on the screen, required method for game
+/**
+  * This method draws the enemy on the screen. Required method for game.
+*/
 Enemy.prototype.render = function() {
 	ctx.drawImage(Resources.get(this._sprite), this._x, this._y);
 };
 
+/**
+  * This method will set the enemy to a randomized starting position.
+*/
 Enemy.prototype.getRandomStart = function() {
-	// The lanes start at y coordinate 62 and have an 83px spacing.
 	this._y = 172 + (Math.floor(Math.random() * 3) * 83) - this._centerY;
 	this._x = this._offScreenLeft - (Math.floor(Math.random() * 100) + 1);
 };
 
+/**
+  * This accessor method will return the speed of the enemy.
+  * @return {int} - The speed of the enemy.
+*/
 Enemy.prototype.getSpeed = function() {
 	return this._speed;
 };
 
+/**
+  * This accessor method will set the stopped property for the enemy.
+*/
 Enemy.prototype.setStopped = function() {
 	this._stopped = true;
 }
 
-// Now write your own player class
-// This class requires an update(), render() and
-// a handleInput() method.
-
+/**
+  * This is the class for the player that the user will navigate around
+  * the screen.
+*/
 var Player = function() {
+	Character.call(this);
 	this._flyOffSpeed = 0;
 	this._rotationAngle = 0;
 	this._waterDepth = 0;
@@ -440,10 +355,19 @@ var Player = function() {
 	this._maxX = 400;
 	this._minY = 0;
 	this._maxY = 400;
+	this._hasMoved = false;
+	this._lastKey = '';
 };
 
+/**
+  * Inherit prototypes from the super class.
+*/
 Player.prototype = Object.create(Character.prototype);
 
+/**
+  * This method will set the character used for the player.
+  * @param {string} character - The name of the 'appCharacters' character to use as the player.
+*/
 Player.prototype.setCharacter = function(character){
 	this._sprite = appCharacters[character].sprite;
 	this._startX = 200;
@@ -461,47 +385,107 @@ Player.prototype.setCharacter = function(character){
 	this._offScreenRight = 600;
 	this._imageHeight = 171;
 	this._imageWidth = 101;
-	this._flyOffSpeed = 0;
-	this._rotationAngle = 0;
-	this._waterDepth = 0;
 	this.resetToStart();
 }
 
+/**
+  * This accessor method returns the last key.
+  * @return {string} - The last key pressed by the user.
+*/
+Player.prototype.getLastKey = function() {
+	return this._lastKey;
+}
+
+/**
+  * This accessor method returns the has moved value for the object.
+  * @return {boolean} - A true/false indicating whether the player has ever been moved by the user.
+*/
+Player.prototype.hasMoved = function() {
+	return this._hasMoved;
+}
+
+/**
+  * This method is used to determine if the player is dead.
+  * @return {boolean} - A true/false indicating whether the player is dead.
+*/
+Player.prototype.isDead = function() {
+	return (this._flyOffSpeed > 0 && this._x >= this._offScreenRight) ||
+		(this._waterDepth > 0 && (this._offsetBottom - this._waterDepth) <= this._offsetTop);
+}
+
+/**
+  * This method is used to determine if the player is dying.
+  * @return {boolean} - A true/false indicating whether the player is dying.
+*/
 Player.prototype.isDying = function () {
 	return this._flyOffSpeed != 0 || this._waterDepth != 0;
 }
 
+/**
+  * This accessor method is used to set the fly of speed when a player is struck by an enemy.
+  * @speed {int} - The speed at which the player will fly off the screen.
+*/
 Player.prototype.setFlyoff = function(speed) {
 	this._flyOffSpeed = speed;
 }
 
+/**
+  * This method is used to determine if the player is flying off the screen.
+  * @return {boolean} - A true/false indicating whether the player is flying off.
+*/
 Player.prototype.isFlyingOff = function () {
 	return this._flyOffSpeed != 0;
 }
 
+/**
+  * This method is used to determine if the player is dying.
+  * @return {boolean} - A true/false indicating whether the player is dying.
+*/
 Player.prototype.isDrowning = function () {
 	return this._waterDepth != 0;
 }
 
+/**
+  * This accessor method is used to determine the player's water depth.
+  * @return {int} - The depth of the player in the water.
+*/
 Player.prototype.getWaterDepth = function() {
 	return this._waterDepth;
 }
 
+/**
+  * This accessor method is used to determine the player's current column.
+  * @return {int} - The current column.
+*/
 Player.prototype.getCurrentColumn = function() {
 	return this._currentColumn;
 }
 
+/**
+  * This accessor method is used to determine the player's current row.
+  * @return {int} - The current row.
+*/
 Player.prototype.getCurrentRow = function() {
 	return this._currentRow;
 }
 
-Player.prototype.checkDrowning = function(allowedColumn) {
-	if (this._currentColumn != allowedColumn && this._currentRow === 1) {
-		// we are on the water.
+/**
+  * This method compares the player's current column to a safe column and
+  * determines if the player is in the water. If the player is in the water,
+  * the method sets the initial depth.
+  * @param {int} safeColumn - The current safe column.
+*/
+Player.prototype.checkDrowning = function(safeColumn) {
+	if (this._currentColumn != safeColumn && this._currentRow === 1) {
+		// We are on the water.
 		this._waterDepth = 1;
 	}
 }
 
+/**
+  * This method resets the player to the starting position. It does not
+  * reset all player settings.
+*/
 Player.prototype.resetToStart = function() {
 	this._x = this._startX;
 	this._y = this._startY;
@@ -510,35 +494,43 @@ Player.prototype.resetToStart = function() {
 	this._waterDepth = 0;
 	this._flyOffSpeed = 0;
 	this._rotationAngle = 0;
+	this._hasMoved = false;
 };
 
-Player.prototype.update = function(dt) {
-	var
-		i
-		, pickupColumn;
+/**
+  * This method resets all player settings and is used when restarting the game.
+*/
+Player.prototype.resetAll = function() {
+	this._hasMoved = false;
+	this.resetToStart();
+};
 
+/**
+  * This method updates the player position properties.
+  * @param {decimal} dt - A time delta value based on the user's computer processing
+  *   speed which will allow a consistent rate of movement for all computers.
+*/
+Player.prototype.update = function(dt) {
 	if (this._flyOffSpeed > 0) {
 		if (this._x < this._offScreenRight) {
 			// Make the player fly off screen to the right.
 			this._x += dt * this._flyOffSpeed;
 			this._y -= dt * 50;
 			this._rotationAngle += dt * 600;
-		} else {
-			consumeLife = true;
 		}
 	} else if (this._waterDepth > 0) {
 		if ((this._offsetBottom - this._waterDepth) > this._offsetTop) {
 			this._waterDepth += 50 * dt;
-		} else {
-			consumeLife = true;
 		}
 	}
 };
 
+/**
+  * This method draws the player to the game board.
+*/
 Player.prototype.render = function() {
-	var i;
-
 	if (this._rotationAngle != 0) {
+		// Make the player rotate as they fly off the screen.
 		ctx.translate(this._x + this._centerX, this._y + this._centerY);
 		ctx.rotate(this._rotationAngle * Math.PI / 180);
 		ctx.drawImage(
@@ -574,51 +566,57 @@ Player.prototype.render = function() {
 	}
 };
 
+/**
+  * This method handles user input during game play and queues up changes
+  * to the player position.
+*/
 Player.prototype.handleInput = function(key) {
 	if (this._flyOffSpeed === 0 && this._waterDepth === 0) {
 		switch(key) {
-			case 'enter':
-				if (livesRemaining === 0) {
-					showStartScreen = true;
-				}
-				break;
 			case 'up':
 				if (this._y > this._minY) {
 					this._y -= 83;
 					this._currentRow--;
 				}
-				showInstructions = false;
+				this._hasMoved = true;
 				break;
 			case 'down':
 				if (this._y < this._maxY) {
 					this._y += 83;
 					this._currentRow++;
 				}
-				showInstructions = false;
+				this._hasMoved = true;
 				break;
 			case 'left':
 				if (this._x > this._minX) {
 					this._x -= 101;
 					this._currentColumn--;
 				}
-				showInstructions = false;
+				this._hasMoved = true;
 				break;
 			case 'right':
 				if (this._x < this._maxX) {
 					this._x += 101;
 					this._currentColumn++;
 				}
-				showInstructions = false;
+				this._hasMoved = true;
 				break;
 		}
 	}
+	this._lastKey = key;
 };
 
+/**
+  * This object contains bubbles which are shown when the player is drowning.
+*/
 var Bubbles = function() {
 	this._bubble = [];
 	this._bubbleCount = 20;
 }
 
+/**
+  * This method generates randomly placed and sized bubbles.
+*/
 Bubbles.prototype.createBubbles = function() {
 	var i;
 
@@ -634,13 +632,18 @@ Bubbles.prototype.createBubbles = function() {
 	}
 }
 
+/**
+  * This method draws the bubbles to the game board around a drowning player. The bubbles
+  *   will rise in relative proportion to the sinking player.
+  * @param {int} column - The column where the bubbles are to be drawn.
+  * @param {int} waterDepth - The player's depth int he water.
+*/
 Bubbles.prototype.render = function(column, waterDepth) {
 	var
 		i
 		, bubble;
 
-	// Draw the bubbles to the screen.
-	ctx.fillStyle = '#E6E6FF';
+	ctx.fillStyle = '#E6E6FF'; // light blue
 	for (i = 0; i < this._bubbleCount; i++) {
 		bubble = this._bubble[i];
 		ctx.beginPath();
@@ -655,6 +658,9 @@ Bubbles.prototype.render = function(column, waterDepth) {
 	}
 }
 
+/**
+  * This object contains gems which the player will attempt to acquire.
+*/
 var Gems = function() {
 	this._gem = [{
 		sprite: 'images/Gem Blue.png'
@@ -707,12 +713,26 @@ var Gems = function() {
 	this._gemInHand = false;
 }
 
+/**
+  * This accessor method will return the column where the current gem
+  * may be picked up by a player character.
+  * @return {int} - The column where the gem is situated for pickup.
+*/
 Gems.prototype.getPickupColumn = function() {
 	if (this._gemCurrent < this._gem.length) {
 		return this._gem[this._gemCurrent].pickupColumn;
+	} else {
+		return 0;
 	}
 }
 
+/**
+  * This method updates the gem position properties.
+  * @param {int} col - The column where the player if located.
+  * @param {int} row - The row where the player is located.
+  * @param {decimal} dt - A time delta value based on the user's computer processing
+  *   speed which will allow a consistent rate of movement for all computers.
+*/
 Gems.prototype.update = function(col, row, dt) {
 	if (this._gemInHand === true && this._gemCurrent < this._gem.length && this._gemMoveX === 0 && this._gemMoveY === 0) {
 		if (this._gem[this._gemCurrent].y > 400) {
@@ -727,6 +747,11 @@ Gems.prototype.update = function(col, row, dt) {
 	}
 }
 
+/**
+  * This method checks to see if the player is in a position to pick up the gem.
+  * @param {int} col - The column where the player if located.
+  * @param {int} row - The row where the player is located.
+*/
 Gems.prototype.checkPickup = function(col, row) {
 	if (this._gemInHand === false && this._gemCurrent < this._gem.length) {
 		// The gem is not in hand. Check to see if the player is in a location to pick it up.
@@ -738,17 +763,26 @@ Gems.prototype.checkPickup = function(col, row) {
 	}
 }
 
+/**
+  * This method resets all gem properties. It is generally used when starting a new game.
+*/
 Gems.prototype.resetAll = function() {
 	this._gemCurrent = 0;
 	this.resetToStart();
 }
 
+/**
+  * This method resets the current gem properties. It is generally used when a player dies.
+*/
 Gems.prototype.resetToStart = function() {
 	this._gem[this._gemCurrent].x = this._gem[this._gemCurrent].startX;
 	this._gem[this._gemCurrent].y = this._gem[this._gemCurrent].startY;
 	this._gemInHand = false;
 }
 
+/**
+  * This method draws acquired gems to the lower left side of the game board.
+*/
 Gems.prototype.renderAcquired = function() {
 	var
 		i
@@ -766,6 +800,9 @@ Gems.prototype.renderAcquired = function() {
 	}
 }
 
+/**
+  * This method draws the current target gem to the appropriate location on the game board.
+*/
 Gems.prototype.renderTarget = function() {
 	if (this._gemCurrent < this._gem.length) {
 		if (this._gemMoveX != 0) {
@@ -801,6 +838,10 @@ Gems.prototype.renderTarget = function() {
 	}
 }
 
+/**
+  * This method draws the rock upon which the current target gem is rested
+  * while waiting for pickup.
+*/
 Gems.prototype.renderRock = function() {
 	if (this._gemCurrent < this._gem.length) {
 		ctx.drawImage(
@@ -813,21 +854,19 @@ Gems.prototype.renderRock = function() {
 	}
 }
 
-// Now instantiate your objects.
-// Place all enemy objects in an array called allEnemies
-// Place the player object in a variable called player
+/**
+  * Instantiate all game objects.
+*/
 var allEnemies = [];
-
 var player = new Player();
-
 var startScreen = new StartScreen();
-
 var gems = new Gems();
-
 var bubbles = new Bubbles();
 
-// This listens for key presses and sends the keys to your
-// Player.handleInput() method. You don't need to modify this.
+/**
+  * This method listens for key presses and sends the keys to the
+  * appropriate handler method.
+*/
 document.addEventListener('keyup', function(e) {
 	var allowedKeys = {
 		37: 'left',
