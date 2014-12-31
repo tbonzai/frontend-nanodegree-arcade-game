@@ -28,7 +28,7 @@ Game Play
 1) Attempt to grab gems off the rocks in the river on the
 top of the game broad. Watch out for enemies and don't slip
 into the water.
-2) Once you have a gem in hand, safely navigate back back to
+2) Once you have a gem in hand, safely navigate back to
 the grassy knoll and it's yours for good.
 3) Acquire all three gems and win the game.
 
