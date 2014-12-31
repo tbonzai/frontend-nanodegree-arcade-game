@@ -152,7 +152,7 @@ var Engine = (function(global) {
             , selectedCharacter;
 
         // Determine if the conditions are right to reshow the start screen.
-        if (showStartScreen === false && livesRemaining === 0 & player.getLastKey() === 'enter') {
+        if (showStartScreen === false && (livesRemaining === 0 || gems.allAcquired()) & player.getLastKey() === 'enter') {
             showStartScreen = true;
         }
 
@@ -186,7 +186,7 @@ var Engine = (function(global) {
                 startScreen.render();
             }
         } else if (player.isDead() === true) {
-            // The player has died. Set everythign back to the starting positions.
+            // The player has died. Set everything back to the starting positions.
             livesRemaining--;
             gems.resetToStart();
             player.resetToStart();
@@ -247,7 +247,16 @@ var Engine = (function(global) {
         renderLives();
         gems.renderAcquired();
         gems.renderRock();
-        if (livesRemaining > 0) {
+        if (livesRemaining > 0 && gems.allAcquired() === true) {
+            // Display the character selection instructions on the screen.
+            ctx.font = "normal normal 50px arial"
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#FF0000';
+            ctx.fillText('Congratulations!', 248, 185);
+            ctx.fillText('You Won!', 248, 268);
+            ctx.font = "normal normal 45px arial"
+            ctx.fillText('Press enter to continue', 248, 351);
+        } else if (livesRemaining > 0) {
             if (player.hasMoved === false) {
                 ctx.font = "normal normal 45px arial"
                 ctx.textAlign = 'center';

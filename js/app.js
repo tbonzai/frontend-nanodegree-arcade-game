@@ -83,14 +83,14 @@ var StartScreen = function() {
 */
 StartScreen.prototype.getSelectedCharacter = function() {
 	return this._selectedCharacter;
-}
+};
 
 /**
   * This accessor method resets the selected player.
 */
 StartScreen.prototype.resetAll = function() {
 	this._selectedCharacter = '';
-}
+};
 
 /**
   * This method updates the start screen settings in preparation for rendering.
@@ -122,7 +122,7 @@ StartScreen.prototype.update = function(dt) {
 	} else {
 		this._radianIncrement = 0;
 	}
-}
+};
 
 /**
   * This function renders elements for the start screen, applying any
@@ -340,7 +340,7 @@ Enemy.prototype.getSpeed = function() {
 */
 Enemy.prototype.setStopped = function() {
 	this._stopped = true;
-}
+};
 
 /**
   * This is the class for the player that the user will navigate around
@@ -386,7 +386,7 @@ Player.prototype.setCharacter = function(character){
 	this._imageHeight = 171;
 	this._imageWidth = 101;
 	this.resetToStart();
-}
+};
 
 /**
   * This accessor method returns the last key.
@@ -394,7 +394,7 @@ Player.prototype.setCharacter = function(character){
 */
 Player.prototype.getLastKey = function() {
 	return this._lastKey;
-}
+};
 
 /**
   * This accessor method returns the has moved value for the object.
@@ -402,7 +402,7 @@ Player.prototype.getLastKey = function() {
 */
 Player.prototype.hasMoved = function() {
 	return this._hasMoved;
-}
+};
 
 /**
   * This method is used to determine if the player is dead.
@@ -411,7 +411,7 @@ Player.prototype.hasMoved = function() {
 Player.prototype.isDead = function() {
 	return (this._flyOffSpeed > 0 && this._x >= this._offScreenRight) ||
 		(this._waterDepth > 0 && (this._offsetBottom - this._waterDepth) <= this._offsetTop);
-}
+};
 
 /**
   * This method is used to determine if the player is dying.
@@ -419,7 +419,7 @@ Player.prototype.isDead = function() {
 */
 Player.prototype.isDying = function () {
 	return this._flyOffSpeed != 0 || this._waterDepth != 0;
-}
+};
 
 /**
   * This accessor method is used to set the fly of speed when a player is struck by an enemy.
@@ -427,7 +427,7 @@ Player.prototype.isDying = function () {
 */
 Player.prototype.setFlyoff = function(speed) {
 	this._flyOffSpeed = speed;
-}
+};
 
 /**
   * This method is used to determine if the player is flying off the screen.
@@ -435,7 +435,7 @@ Player.prototype.setFlyoff = function(speed) {
 */
 Player.prototype.isFlyingOff = function () {
 	return this._flyOffSpeed != 0;
-}
+};
 
 /**
   * This method is used to determine if the player is dying.
@@ -443,7 +443,7 @@ Player.prototype.isFlyingOff = function () {
 */
 Player.prototype.isDrowning = function () {
 	return this._waterDepth != 0;
-}
+};
 
 /**
   * This accessor method is used to determine the player's water depth.
@@ -451,7 +451,7 @@ Player.prototype.isDrowning = function () {
 */
 Player.prototype.getWaterDepth = function() {
 	return this._waterDepth;
-}
+};
 
 /**
   * This accessor method is used to determine the player's current column.
@@ -459,7 +459,7 @@ Player.prototype.getWaterDepth = function() {
 */
 Player.prototype.getCurrentColumn = function() {
 	return this._currentColumn;
-}
+};
 
 /**
   * This accessor method is used to determine the player's current row.
@@ -467,7 +467,7 @@ Player.prototype.getCurrentColumn = function() {
 */
 Player.prototype.getCurrentRow = function() {
 	return this._currentRow;
-}
+};
 
 /**
   * This method compares the player's current column to a safe column and
@@ -480,7 +480,7 @@ Player.prototype.checkDrowning = function(safeColumn) {
 		// We are on the water.
 		this._waterDepth = 1;
 	}
-}
+};
 
 /**
   * This method resets the player to the starting position. It does not
@@ -612,7 +612,7 @@ Player.prototype.handleInput = function(key) {
 var Bubbles = function() {
 	this._bubble = [];
 	this._bubbleCount = 20;
-}
+};
 
 /**
   * This method generates randomly placed and sized bubbles.
@@ -630,7 +630,7 @@ Bubbles.prototype.createBubbles = function() {
 			, floatSpeed: Math.random() * 5 / 6
 		})
 	}
-}
+};
 
 /**
   * This method draws the bubbles to the game board around a drowning player. The bubbles
@@ -656,7 +656,7 @@ Bubbles.prototype.render = function(column, waterDepth) {
 		);
 		ctx.fill();
 	}
-}
+};
 
 /**
   * This object contains gems which the player will attempt to acquire.
@@ -711,7 +711,15 @@ var Gems = function() {
 	this._gemMoveY = 0;
 	this._gemCurrent = 0;
 	this._gemInHand = false;
-}
+};
+
+/**
+  * This method indicates whether all the gems have been acquired.
+  * @return {boolean} - A true/false indicating whether all gems are acquired.
+*/
+Gems.prototype.allAcquired = function() {
+	return this._gemCurrent >= this._gem.length;
+};
 
 /**
   * This accessor method will return the column where the current gem
@@ -724,7 +732,7 @@ Gems.prototype.getPickupColumn = function() {
 	} else {
 		return 0;
 	}
-}
+};
 
 /**
   * This method updates the gem position properties.
@@ -745,7 +753,7 @@ Gems.prototype.update = function(col, row, dt) {
 			this._gem[this._gemCurrent].y = 90 + (row - 1) * 83;
 		}
 	}
-}
+};
 
 /**
   * This method checks to see if the player is in a position to pick up the gem.
@@ -761,15 +769,19 @@ Gems.prototype.checkPickup = function(col, row) {
 			this._gem[this._gemCurrent].y = 90;
 		}
 	}
-}
+};
 
 /**
   * This method resets all gem properties. It is generally used when starting a new game.
 */
 Gems.prototype.resetAll = function() {
+	var i;
 	this._gemCurrent = 0;
-	this.resetToStart();
-}
+	for (i = 0; i < this._gem.length; i++) {
+		this._gem[i].x = this._gem[i].startX;
+		this._gem[i].y = this._gem[i].startY;
+	}
+};
 
 /**
   * This method resets the current gem properties. It is generally used when a player dies.
@@ -778,7 +790,7 @@ Gems.prototype.resetToStart = function() {
 	this._gem[this._gemCurrent].x = this._gem[this._gemCurrent].startX;
 	this._gem[this._gemCurrent].y = this._gem[this._gemCurrent].startY;
 	this._gemInHand = false;
-}
+};
 
 /**
   * This method draws acquired gems to the lower left side of the game board.
@@ -798,7 +810,7 @@ Gems.prototype.renderAcquired = function() {
 		    , img.height
 		);
 	}
-}
+};
 
 /**
   * This method draws the current target gem to the appropriate location on the game board.
@@ -836,7 +848,7 @@ Gems.prototype.renderTarget = function() {
 			this._gemCurrent++;
 		}
 	}
-}
+};
 
 /**
   * This method draws the rock upon which the current target gem is rested
@@ -852,7 +864,7 @@ Gems.prototype.renderRock = function() {
 		    , 100
 		);
 	}
-}
+};
 
 /**
   * Instantiate all game objects.
