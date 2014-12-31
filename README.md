@@ -10,7 +10,7 @@ Setup
 ===============================
 
 1) Unzip files.
-2) Open "index.html" in HTML 5 capable browser. Ensure that JavaScript is enabled.
+2) Open "index.html" in HTML 5 capable browser with JavaScript is enabled.
 3) Play!
 
 ===============================
@@ -18,9 +18,17 @@ Game Instructions
 ===============================
 
 Start Screen
-------------
+-------------------------------
 1) Use left (<) and right (>) arrow keys to rotate characters until
 the desired player is stopped inside the selection box.
 2) Press the "enter" key to select the character.
 
+Game Play
+-------------------------------
+1) Attempt to grab gems off the rocks in the river on the
+top of the game broad. Watch out for enemies and don't slip
+into the water.
+2) Once you have a gem in hand, safely navigate back back to
+the grassy knoll and it's yours for good.
+3) Acquire all three gems and win the game.
 
