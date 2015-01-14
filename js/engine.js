@@ -88,7 +88,7 @@ var Engine = (function(global) {
       * on the entities themselves within your app.js file).
       * @param {decimal} dt - A time delta value based on the user's computer processing
       *   speed which will allow a consistent rate of movement for all computers.
-  */
+    */
     function update(dt) {
         updateEntities(dt);
         eventCheck();
@@ -287,17 +287,16 @@ var Engine = (function(global) {
       * This function draws the key images representing the number of lives.
     */
     function renderLives() {
-        // Draw the keys representing player lives on the bottom to the screen.
-        for (i = 0; i < livesRemaining; i++) {
-            ctx.drawImage(
-                Resources.get('images/Key.png')
-                , 455 - (i * 32)
-                , 527
-                , 65
-                , 65
-            );
-        }
-
+    // Draw the keys representing player lives on the bottom to the screen.
+      for (i = 0; i < livesRemaining; i++) {
+        ctx.drawImage(
+          Resources.get('images/Key.png'),
+          455 - (i * 32),
+          527,
+          65,
+          65
+        );
+      }
     }
 
     /**
