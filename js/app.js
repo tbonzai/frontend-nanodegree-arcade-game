@@ -9,58 +9,58 @@ var livesAllowed = 3;
 */
 var appCharacters = {
 	'boy': {
-		sprite: 'images/char-boy.png'
-		, centerX: 51
-		, centerY: 101
-		, offsetLeft: 16
-		, offsetRight: 86
-		, offsetTop: 62
-		, offsetBottom: 136
-	}
-	, 'cat-girl': {
-		sprite: 'images/char-cat-girl.png'
-		, centerX: 51
-		, centerY: 100
-		, offsetLeft: 15
-		, offsetRight: 86
-		, offsetTop: 60
-		, offsetBottom: 136
-	}
-	, 'horn-girl': {
-		sprite: 'images/char-horn-girl.png'
-		, centerX: 51
-		, centerY: 100
-		, offsetLeft: 6
-		, offsetRight: 86
-		, offsetTop: 60
-		, offsetBottom: 136
-	}
-	, 'pink-girl': {
-		sprite: 'images/char-pink-girl.png'
-		, centerX: 51
-		, centerY: 101
-		, offsetLeft: 12
-		, offsetRight: 90
-		, offsetTop: 61
-		, offsetBottom: 138
-	}
-	, 'princess-girl': {
-		sprite: 'images/char-princess-girl.png'
-		, centerX: 51
-		, centerY: 96
-		, offsetLeft: 12
-		, offsetRight: 90
-		, offsetTop: 51
-		, offsetBottom: 142
-	}
-	, 'bug': {
-		sprite: 'images/enemy-bug.png'
-		, centerX: 50
-		, centerY: 109
-		, offsetLeft: 0
-		, offsetRight: 100
-		, offsetTop: 76
-		, offsetBottom: 142
+		sprite: 'images/char-boy.png',
+		centerX: 51,
+		centerY: 101,
+		offsetLeft: 16,
+		offsetRight: 86,
+		offsetTop: 62,
+		offsetBottom: 136
+	},
+	'cat-girl': {
+		sprite: 'images/char-cat-girl.png',
+		centerX: 51,
+		centerY: 100,
+		offsetLeft: 15,
+		offsetRight: 86,
+		offsetTop: 60,
+		offsetBottom: 136
+	},
+	'horn-girl': {
+		sprite: 'images/char-horn-girl.png',
+		centerX: 51,
+		centerY: 100,
+		offsetLeft: 6,
+		offsetRight: 86,
+		offsetTop: 60,
+		offsetBottom: 136
+	},
+	'pink-girl': {
+		sprite: 'images/char-pink-girl.png',
+		centerX: 51,
+		centerY: 101,
+		offsetLeft: 12,
+		offsetRight: 90,
+		offsetTop: 61,
+		offsetBottom: 138
+	},
+	'princess-girl': {
+		sprite: 'images/char-princess-girl.png',
+		centerX: 51,
+		centerY: 96,
+		offsetLeft: 12,
+		offsetRight: 90,
+		offsetTop: 51,
+		offsetBottom: 142
+	},
+	'bug': {
+		sprite: 'images/enemy-bug.png',
+		centerX: 50,
+		centerY: 109,
+		offsetLeft: 0,
+		offsetRight: 100,
+		offsetTop: 76,
+		offsetBottom: 142
 	}
 };
 
@@ -146,9 +146,9 @@ StartScreen.prototype.render = function() {
 		this._chars[i].radians += this._radianIncrement;
 	    char = this._chars[i];
 		ctx.drawImage(
-			Resources.get(char.sprite)
-			, 250 + (150 * Math.cos(char.radians)) - char.centerX
-			, 300 + (150 * Math.sin(char.radians)) - char.centerY
+			Resources.get(char.sprite),
+			250 + (150 * Math.cos(char.radians)) - char.centerX,
+			300 + (150 * Math.sin(char.radians)) - char.centerY
 		);
 	}
 
@@ -165,9 +165,9 @@ StartScreen.prototype.render = function() {
 StartScreen.prototype.buildCharacterArray = function() {
 	// Count the characters in the App Characters object.
 	var
-		characterCount = 0
-		, i
-		, radians;
+		characterCount = 0,
+		i,
+		radians;
 
 	for (i in appCharacters) {
 		characterCount++;
@@ -180,11 +180,11 @@ StartScreen.prototype.buildCharacterArray = function() {
 	for (i in appCharacters) {
 		char = appCharacters[i];
 		this._chars.push({
-			name: i
-			, sprite: char.sprite
-			, radians: radians
-			, centerX: char.centerX
-			, centerY: char.centerY
+			name: i,
+			sprite: char.sprite,
+			radians: radians,
+			centerX: char.centerX,
+			centerY: char.centerY
 		});
 		radians += this._spacingInRadians;
 	}
@@ -354,7 +354,7 @@ var Player = function() {
 	this._minX = 0;
 	this._maxX = 400;
 	this._minY = 0;
-	this._maxY = 400;
+	this._maxY = 390;
 	this._hasMoved = false;
 	this._lastKey = '';
 };
@@ -534,34 +534,34 @@ Player.prototype.render = function() {
 		ctx.translate(this._x + this._centerX, this._y + this._centerY);
 		ctx.rotate(this._rotationAngle * Math.PI / 180);
 		ctx.drawImage(
-		    Resources.get(this._sprite)
-		    , -1 * this._centerX
-		    , -1 * this._centerY
-		    , this._imageWidth
-		    , this._imageHeight
+		    Resources.get(this._sprite),
+		    -1 * this._centerX,
+		    -1 * this._centerY,
+		    this._imageWidth,
+		    this._imageHeight
 		);
 		ctx.rotate(-1 * this._rotationAngle * Math.PI / 180);
 		ctx.translate(-1 * (this._x + this._centerX), -1 * (this._y + this._centerY));
 	} else if (this._waterDepth != 0) {
 		// Make the player sink into the water.
 		ctx.drawImage(
-			Resources.get(this._sprite)
-			, 0
-			, 0
-			, this._imageWidth
-			, this._offsetBottom - this._waterDepth // shorten the player
-			, this._x
-			, this._y + this._waterDepth // move player down
-			, this._imageWidth
-			, this._offsetBottom - this._waterDepth // shorten the player
+			Resources.get(this._sprite),
+			0,
+			0,
+			this._imageWidth,
+			this._offsetBottom - this._waterDepth, // shorten the player
+			this._x,
+			this._y + this._waterDepth, // move player down
+			this._imageWidth,
+			this._offsetBottom - this._waterDepth // shorten the player
 		);
 	} else {
 		ctx.drawImage(
-		    Resources.get(this._sprite)
-		    , this._x
-		    , this._y
-		    , this._imageWidth
-		    , this._imageHeight
+		    Resources.get(this._sprite),
+		    this._x,
+		    this._y,
+		    this._imageWidth,
+		    this._imageHeight
 		);
 	}
 };
@@ -625,9 +625,9 @@ Bubbles.prototype.createBubbles = function() {
 	// Create new randomized bubbles.
 	for (i = 0; i < this._bubbleCount; i++) {
 		this._bubble.push({
-			offsetX: Math.floor((Math.random() * 70) + 15)
-			, radius: Math.floor((Math.random() * 4) + 1)
-			, floatSpeed: Math.random() * 5 / 6
+			offsetX: Math.floor((Math.random() * 70) + 15),
+			radius: Math.floor((Math.random() * 4) + 1),
+			floatSpeed: Math.random() * 5 / 6
 		})
 	}
 };
@@ -640,19 +640,19 @@ Bubbles.prototype.createBubbles = function() {
 */
 Bubbles.prototype.render = function(column, waterDepth) {
 	var
-		i
-		, bubble;
+		i,
+		bubble;
 
 	ctx.fillStyle = '#E6E6FF'; // light blue
 	for (i = 0; i < this._bubbleCount; i++) {
 		bubble = this._bubble[i];
 		ctx.beginPath();
 		ctx.arc(
-		    bubble.offsetX + (column - 1) * 101
-		    , 125 - (waterDepth * bubble.floatSpeed)
-		    , bubble.radius
-		    , 0
-		    , 2 * Math.PI
+		    bubble.offsetX + (column - 1) * 101,
+		    125 - (waterDepth * bubble.floatSpeed),
+		    bubble.radius,
+		    0,
+		    2 * Math.PI
 		);
 		ctx.fill();
 	}
@@ -663,49 +663,49 @@ Bubbles.prototype.render = function(column, waterDepth) {
 */
 var Gems = function() {
 	this._gem = [{
-		sprite: 'images/Gem Blue.png'
-		, x: 440
-		, y: 70
-		, startX: 440
-		, startY: 70
-		, acquiredX: 8
-		, acquiredY: 540
-		, pickupColumn: 5
-		, pickupRow: 1
-		, width: 25
-		, height: 40
-		, rockX: 404
-		, rockY: 40
-	}
-	, {
-		sprite: 'images/Gem Green.png'
-		, x: 238
-		, y: 70
-		, startX: 238
-		, startY: 70
-		, acquiredX: 40
-		, acquiredY: 540
-		, pickupColumn: 3
-		, pickupRow: 1
-		, width: 25
-		, height: 40
-		, rockX: 202
-		, rockY: 40
-	}
-	, {
-		sprite: 'images/Gem Orange.png'
-		, x: 36
-		, y: 70
-		, startX: 36
-		, startY: 70
-		, acquiredX: 72
-		, acquiredY: 540
-		, pickupColumn: 1
-		, pickupRow: 1
-		, width: 25
-		, height: 40
-		, rockX: 0
-		, rockY: 40
+		sprite: 'images/Gem Blue.png',
+		x: 440,
+		y: 70,
+		startX: 440,
+		startY: 70,
+		acquiredX: 8,
+		acquiredY: 540,
+		pickupColumn: 5,
+		pickupRow: 1,
+		width: 25,
+		height: 40,
+		rockX: 404,
+		rockY: 40
+	},
+	{
+		sprite: 'images/Gem Green.png',
+		x: 238,
+		y: 70,
+		startX: 238,
+		startY: 70,
+		acquiredX: 40,
+		acquiredY: 540,
+		pickupColumn: 3,
+		pickupRow: 1,
+		width: 25,
+		height: 40,
+		rockX: 202,
+		rockY: 40
+	},
+	{
+		sprite: 'images/Gem Orange.png',
+		x: 36,
+		y: 70,
+		startX: 36,
+		startY: 70,
+		acquiredX: 72,
+		acquiredY: 540,
+		pickupColumn: 1,
+		pickupRow: 1,
+		width: 25,
+		height: 40,
+		rockX: 0,
+		rockY: 40
 	}];
 	this._gemMoveX = 0;
 	this._gemMoveY = 0;
@@ -803,11 +803,11 @@ Gems.prototype.renderAcquired = function() {
 	for (i = 0; i < this._gemCurrent; i++) {
 		img = this._gem[i];
 		ctx.drawImage(
-		    Resources.get(img.sprite)
-		    , img.acquiredX
-		    , img.acquiredY
-		    , img.width
-		    , img.height
+			Resources.get(img.sprite),
+			img.acquiredX,
+			img.acquiredY,
+			img.width,
+			img.height
 		);
 	}
 };
@@ -857,11 +857,11 @@ Gems.prototype.renderTarget = function() {
 Gems.prototype.renderRock = function() {
 	if (this._gemCurrent < this._gem.length) {
 		ctx.drawImage(
-		    Resources.get('images/Rock.png')
-		    , this._gem[this._gemCurrent].rockX
-		    , this._gem[this._gemCurrent].rockY
-		    , 100
-		    , 100
+			Resources.get('images/Rock.png'),
+			this._gem[this._gemCurrent].rockX,
+			this._gem[this._gemCurrent].rockY,
+			100,
+			100
 		);
 	}
 };
